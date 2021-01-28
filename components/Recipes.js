@@ -1,13 +1,15 @@
 import React from 'react';
-import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Animated } from 'react-native';
+import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Animated, Dimensions } from 'react-native';
 import { Input, Button, Overlay, Text } from 'react-native-elements';
 import { ScrollView } from 'react-native-gesture-handler';
 import Carousel from 'react-native-snap-carousel';
+import RecipeCard from './RecipeCard';
 
 let yPosition = 0;
 let currentIndex = 0;
 const OPEN_HEIGHT = 350;
 const CLOSED_HEIGHT = 100;
+const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
 export default class Recipes extends React.Component {
   constructor(props) {
@@ -33,69 +35,43 @@ export default class Recipes extends React.Component {
         { id: 3, title: 'pizza', description: 'a circle of bread and meat' },
         { id: 4, title: 'meat load', description: 'a loaf of meat' },
         { id: 5, title: 'mashed potatoes', description: 'a mashed of potatoes' },
-        { id: 6, title: 'meatballs', description: 'a ball of meat' },
-        { id: 7, title: 'pie', description: 'a circle of yum' },
-        { id: 8, title: 'pizza', description: 'a circle of bread and meat' },
-        { id: 9, title: 'meat load', description: 'a loaf of meat' },
-        { id: 10, title: 'mashed potatoes', description: 'a mashed of potatoes' },
+        // { id: 6, title: 'meatballs', description: 'a ball of meat' },
+        // { id: 7, title: 'pie', description: 'a circle of yum' },
+        // { id: 8, title: 'pizza', description: 'a circle of bread and meat' },
+        // { id: 9, title: 'meat load', description: 'a loaf of meat' },
+        // { id: 10, title: 'mashed potatoes', description: 'a mashed of potatoes' },
       ]
-    );
-  }
-
-  _renderItem = ({ item, index }) => {
-    console.log('index: ', index);
-    if (index === currentIndex) {
-      return (
-        <View style={styles.recipe}>
-          <Text style={styles.recipeTitle}>{item.title}</Text>
-          <Text style={styles.recipeDescription}>{item.description}</Text>
-          <Text style={styles.recipeTitle}>{item.title}</Text>
-          <Text style={styles.recipeDescription}>{item.description}</Text>
-          <Text style={styles.recipeTitle}>{item.title}</Text>
-          <Text style={styles.recipeDescription}>{item.description}</Text>
-        </View>
-      );
-    }
-    return (
-      <View style={styles.recipe}>
-        <Text style={styles.recipeTitle}>{item.title}</Text>
-        <Text style={styles.recipeDescription}>{item.description}</Text>
-      </View>
     );
   }
 
   handleScroll = (event) => {
     // console.log(event.nativeEvent.contentOffset.y);
     yPosition = event.nativeEvent.contentOffset.y;
-    currentIndex = Math.ceil(yPosition/(250+(5*2)));
+    currentIndex = Math.ceil(yPosition / (250 + (5 * 2)));
     console.log(currentIndex);
   }
 
-  recipeList = () => {
-
-  }
+  
 
   render() {
-
+    const y = new Animated.Value(0);
+    const onScroll = Animated.event([{ nativeEvent: { contentOffset: { y } } }], {
+      useNativeDriver: true,
+    });
     return (
       <SafeAreaView>
         <StatusBar barStyle={Platform.OS === 'android' ? 'light-content' : 'dark-content'} />
         <View style={styles.container}>
-          <View style={styles.carousel}>
-            <ScrollView 
-              snapToAlignment={"start"}
-              snapToInterval={250+(5*2)}
-              decelerationRate={"fast"}
-              onScroll={this.handleScroll}
-              scrollEventThrottle={100}
-            >
-              <FlatList
-                data={this.state.recipes}
-                renderItem={this._renderItem}
-                keyExtractor={(recipe) => recipe.id.toString()}
-              />
-            </ScrollView>
-          </View>
+          <AnimatedFlatList
+            data={this.state.recipes}
+            renderItem={({ index, item }) => (
+              <RecipeCard index={index} y={y} recipe={item} selected={false} />
+            )}
+            bounces={false}
+            keyExtractor={(recipe) => recipe.id.toString()}
+            scrollEventThrottle={16}
+            {...{ onScroll }}
+          />
         </View>
       </SafeAreaView>
     );
