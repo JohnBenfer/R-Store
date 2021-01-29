@@ -14,6 +14,7 @@ const DEFAULT_CARD_HEIGHT = 140;
 const MARGIN = 12;
 const BOTTOM_TABS = 90;
 const CARD_HEIGHT = DEFAULT_CARD_HEIGHT + MARGIN * 2;
+let oldY = 0;
 
 export default class Recipes extends React.Component {
   y = new Animated.Value(0);
@@ -22,8 +23,9 @@ export default class Recipes extends React.Component {
     this.state = {
       recipes: this.loadMockRecipes(),
       selectedRecipe: {},
+      selectedIndex: 1,
     };
-    
+
   }
 
   async componentDidMount() {
@@ -64,11 +66,34 @@ export default class Recipes extends React.Component {
   handleRecipePress = (recipe) => {
     this.setState({ selectedRecipe: recipe });
   }
-  
+
 
   render() {
+    let selectedIndex = 1;
+    
     const onScroll = Animated.event([{ nativeEvent: { contentOffset: { y: this.y } } }], {
       useNativeDriver: true,
+      listener: (e) => {
+        // console.log(e.nativeEvent.contentOffset.y);
+        const oldIndex = this.state.selectedIndex;
+        let currentY = e.nativeEvent.contentOffset.y;
+        if (currentY > oldY) {
+          // scrolling down
+          selectedIndex = Math.ceil(currentY / CARD_HEIGHT) + 1;
+          if (selectedIndex !== oldIndex) {
+            console.log(selectedIndex);
+            this.setState({ selectedIndex: selectedIndex });
+          }
+        } else {
+          // scrolling up
+          selectedIndex = Math.floor(currentY / CARD_HEIGHT) + 1;
+          if (selectedIndex !== oldIndex) {
+            console.log(selectedIndex);
+            this.setState({ selectedIndex: selectedIndex });
+          }
+        }
+        oldY = currentY;
+      }
     });
     return (
       <SafeAreaView>
@@ -77,7 +102,7 @@ export default class Recipes extends React.Component {
           <AnimatedFlatList
             data={this.state.recipes}
             renderItem={({ index, item }) => (
-              <RecipeCard index={index} y={this.y} recipe={item} selected={item.id === this.state.selectedRecipe?.id} handleRecipePress={this.handleRecipePress} />
+              <RecipeCard index={index} y={this.y} recipe={item} selectedIndex={this.state.selectedIndex} selected={item.id === this.state.selectedRecipe?.id} handleRecipePress={this.handleRecipePress} />
             )}
             bounces={false}
             keyExtractor={(recipe) => recipe.id.toString()}

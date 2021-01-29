@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
     borderColor: 'black',
     borderRadius: 10,
     backgroundColor: '#f2f2f2',
-    height: DEFAULT_CARD_HEIGHT,
+    // height: DEFAULT_CARD_HEIGHT,
     marginVertical: 0,
     width: width*0.8,
 
@@ -37,16 +37,15 @@ const styles = StyleSheet.create({
 // props: recipe, y, index
 // recipe: title, description, id
 const RecipeCard = (props) => {
-  const { recipe, index, selected, y } = props;
-  // let y = new Animated.Value(index*CARD_HEIGHT);
-  // let y = new Animated.Value(0);
+  const { recipe, index, selected, selectedIndex, y } = props;
   if (selected) {
     console.log(recipe);
-    console.log(y);
   }
   const position = Animated.subtract(index * CARD_HEIGHT, y);
   const isDisappearing = -CARD_HEIGHT;
   const isTop = 0;
+  const isMiddleBottom = CARD_HEIGHT;
+  const isMiddleTop = height - (CARD_HEIGHT * 2) - BOTTOM_TABS;
   const isBottom = height - CARD_HEIGHT - BOTTOM_TABS;
   const isAppearing = height;
   const translateY = Animated.add(
@@ -65,23 +64,34 @@ const RecipeCard = (props) => {
     })
   );
 
-  const scale = position.interpolate({
+  const scaleX = position.interpolate({
     inputRange: [isDisappearing, isTop, isBottom, isAppearing],
     outputRange: [0.5, 1, 1, 0.5],
     extrapolate: "clamp",
   });
-  const opacity = 1;
-  // const opacity = position.interpolate({
-  //   inputRange: [isDisappearing, isTop, isBottom, isAppearing],
-  //   outputRange: [0.5, 1, 1, 0.5],
+
+  const scaleY = position.interpolate({
+    inputRange: [isDisappearing, isTop, isBottom, isAppearing],
+    outputRange: [0.5, 1, 1, 0.5],
+    extrapolate: "clamp",
+  });
+
+  const opacity = position.interpolate({
+    inputRange: [isDisappearing, isTop, isBottom, isAppearing],
+    outputRange: [0.5, 1, 1, 0.5],
+  });
+  // const recipeHeight = position.interpolate({
+  //   inputRange: [isDisappearing, isTop, isMiddleBottom, isMiddleTop, isBottom, isAppearing],
+  //   outputRange: [DEFAULT_CARD_HEIGHT, DEFAULT_CARD_HEIGHT, DEFAULT_CARD_HEIGHT*2, DEFAULT_CARD_HEIGHT*2, DEFAULT_CARD_HEIGHT, DEFAULT_CARD_HEIGHT],
+  //   extrapolate: "clamp",
   // });
   return (
     <Animated.View
-      style={[styles.card, { opacity, transform: [{ translateY }, { scale }] }]}
+      style={[styles.card, {opacity, transform: [{ translateY }, { scaleX }, { scaleY }] }]}
       key={index}
     >
       <Pressable onPress={() => props.handleRecipePress(recipe)}>
-        <View style={[styles.recipe, {backgroundColor: selected ? '#c2f3fc' : '#e6e6e6'}]}>
+        <View style={[styles.recipe, {height: index === selectedIndex ? 100 + DEFAULT_CARD_HEIGHT*2 : DEFAULT_CARD_HEIGHT, backgroundColor: index === selectedIndex ? '#c2f3fc' : '#e6e6e6'}]}>
           <Text style={styles.recipeTitle}>{props.recipe.title}</Text>
           <Text style={styles.recipeDescription}>{props.recipe.description}</Text>
         </View>
