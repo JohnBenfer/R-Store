@@ -2,13 +2,13 @@ import React from 'react';
 import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Animated, Dimensions, Pressable } from 'react-native';
 import { Input, Button, Overlay, Text } from 'react-native-elements';
 
-const DEFAULT_CARD_HEIGHT = 120;
-const MARGIN = 16;
+const DEFAULT_CARD_HEIGHT = 140;
+const MARGIN = 12;
 const BOTTOM_TABS = 90;
 const CARD_HEIGHT = DEFAULT_CARD_HEIGHT + MARGIN * 2;
-const { height: wHeight } = Dimensions.get("window");
+const { height: wHeight, width } = Dimensions.get("window");
 const height = wHeight - 64;
-let selected = false;
+
 
 const styles = StyleSheet.create({
   recipe: {
@@ -19,8 +19,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#f2f2f2',
     height: DEFAULT_CARD_HEIGHT,
     marginVertical: 0,
-    width: 300,
-    // flex: 1,
+    width: width*0.8,
+
   },
   card: {
     marginVertical: MARGIN,
@@ -37,15 +37,13 @@ const styles = StyleSheet.create({
 // props: recipe, y, index
 // recipe: title, description, id
 const RecipeCard = (props) => {
-  const { recipe, y, index } = props;
-  // console.log('y:');
-  // console.log(y);
-  // console.log('index');
-  // console.log(index);
-  // console.log('recipe:');
-  console.log('selected');
-  console.log(selected);
-  console.log(recipe);
+  const { recipe, index, selected, y } = props;
+  // let y = new Animated.Value(index*CARD_HEIGHT);
+  // let y = new Animated.Value(0);
+  if (selected) {
+    console.log(recipe);
+    console.log(y);
+  }
   const position = Animated.subtract(index * CARD_HEIGHT, y);
   const isDisappearing = -CARD_HEIGHT;
   const isTop = 0;
@@ -66,25 +64,24 @@ const RecipeCard = (props) => {
       extrapolate: "clamp",
     })
   );
+
   const scale = position.interpolate({
     inputRange: [isDisappearing, isTop, isBottom, isAppearing],
     outputRange: [0.5, 1, 1, 0.5],
     extrapolate: "clamp",
   });
-  const opacity = position.interpolate({
-    inputRange: [isDisappearing, isTop, isBottom, isAppearing],
-    outputRange: [0.5, 1, 1, 0.5],
-  });
+  const opacity = 1;
+  // const opacity = position.interpolate({
+  //   inputRange: [isDisappearing, isTop, isBottom, isAppearing],
+  //   outputRange: [0.5, 1, 1, 0.5],
+  // });
   return (
     <Animated.View
       style={[styles.card, { opacity, transform: [{ translateY }, { scale }] }]}
       key={index}
     >
-      <Pressable onPress={() => {
-        selected = selected ? false : true;
-        console.log('here in press');
-      }}>
-        <View style={styles.recipe}>
+      <Pressable onPress={() => props.handleRecipePress(recipe)}>
+        <View style={[styles.recipe, {backgroundColor: selected ? '#c2f3fc' : '#e6e6e6'}]}>
           <Text style={styles.recipeTitle}>{props.recipe.title}</Text>
           <Text style={styles.recipeDescription}>{props.recipe.description}</Text>
         </View>
