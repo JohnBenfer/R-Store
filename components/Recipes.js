@@ -10,7 +10,7 @@ let currentIndex = 0;
 const OPEN_HEIGHT = 350;
 const CLOSED_HEIGHT = 100;
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
-const DEFAULT_CARD_HEIGHT = 140;
+const DEFAULT_CARD_HEIGHT = 480;
 const MARGIN = 12;
 const BOTTOM_TABS = 90;
 const CARD_HEIGHT = DEFAULT_CARD_HEIGHT + MARGIN * 2;
@@ -81,14 +81,12 @@ export default class Recipes extends React.Component {
           // scrolling down
           selectedIndex = Math.ceil(currentY / CARD_HEIGHT) + 1;
           if (selectedIndex !== oldIndex) {
-            console.log(selectedIndex);
             this.setState({ selectedIndex: selectedIndex });
           }
         } else {
           // scrolling up
           selectedIndex = Math.floor(currentY / CARD_HEIGHT) + 1;
           if (selectedIndex !== oldIndex) {
-            console.log(selectedIndex);
             this.setState({ selectedIndex: selectedIndex });
           }
         }
@@ -104,7 +102,7 @@ export default class Recipes extends React.Component {
             renderItem={({ index, item }) => (
               <RecipeCard index={index} y={this.y} recipe={item} selectedIndex={this.state.selectedIndex} selected={item.id === this.state.selectedRecipe?.id} handleRecipePress={this.handleRecipePress} />
             )}
-            bounces={false}
+            bounces={true}
             keyExtractor={(recipe) => recipe.id.toString()}
             scrollEventThrottle={16}
             {...{ onScroll }}
@@ -123,7 +121,7 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
     paddingRight: 20,
     backgroundColor: '#f2f2f2',
-    marginBottom: 0
+    marginBottom: 0,
   },
   carousel: {
     marginTop: 10,

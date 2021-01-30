@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Animated, Dimensions, Pressable } from 'react-native';
 import { Input, Button, Overlay, Text } from 'react-native-elements';
 
-const DEFAULT_CARD_HEIGHT = 140;
+const DEFAULT_CARD_HEIGHT = 480;
 const MARGIN = 12;
 const BOTTOM_TABS = 90;
 const CARD_HEIGHT = DEFAULT_CARD_HEIGHT + MARGIN * 2;
@@ -38,47 +38,42 @@ const styles = StyleSheet.create({
 // recipe: title, description, id
 const RecipeCard = (props) => {
   const { recipe, index, selected, selectedIndex, y } = props;
-  if (selected) {
-    console.log(recipe);
-  }
   const position = Animated.subtract(index * CARD_HEIGHT, y);
   const isDisappearing = -CARD_HEIGHT;
   const isTop = 0;
-  const isMiddleBottom = CARD_HEIGHT;
-  const isMiddleTop = height - (CARD_HEIGHT * 2) - BOTTOM_TABS;
   const isBottom = height - CARD_HEIGHT - BOTTOM_TABS;
   const isAppearing = height;
   const translateY = Animated.add(
     Animated.add(
       y,
       y.interpolate({
-        inputRange: [0, 0.00001 + index * CARD_HEIGHT],
+        inputRange: [0, 0.00001+ index * CARD_HEIGHT],
         outputRange: [0, -index * CARD_HEIGHT],
         extrapolateRight: "clamp",
       })
     ),
     position.interpolate({
-      inputRange: [isBottom, isAppearing],
-      outputRange: [0, -CARD_HEIGHT / 4],
+      inputRange: [isDisappearing, isTop, isBottom, isAppearing],
+      outputRange: [CARD_HEIGHT/4, 20, 0, -CARD_HEIGHT / 6],
       extrapolate: "clamp",
     })
   );
 
   const scaleX = position.interpolate({
     inputRange: [isDisappearing, isTop, isBottom, isAppearing],
-    outputRange: [0.5, 1, 1, 0.5],
+    outputRange: [0.4, 1, 1, 0.6],
     extrapolate: "clamp",
   });
 
   const scaleY = position.interpolate({
     inputRange: [isDisappearing, isTop, isBottom, isAppearing],
-    outputRange: [0.5, 1, 1, 0.5],
+    outputRange: [0.4, 1, 1, 0.6],
     extrapolate: "clamp",
   });
 
   const opacity = position.interpolate({
     inputRange: [isDisappearing, isTop, isBottom, isAppearing],
-    outputRange: [0.5, 1, 1, 0.5],
+    outputRange: [0, 1, 1, 0.7],
   });
   // const recipeHeight = position.interpolate({
   //   inputRange: [isDisappearing, isTop, isMiddleBottom, isMiddleTop, isBottom, isAppearing],
@@ -91,7 +86,7 @@ const RecipeCard = (props) => {
       key={index}
     >
       <Pressable onPress={() => props.handleRecipePress(recipe)}>
-        <View style={[styles.recipe, {height: index === selectedIndex ? 100 + DEFAULT_CARD_HEIGHT*2 : DEFAULT_CARD_HEIGHT, backgroundColor: index === selectedIndex ? '#c2f3fc' : '#e6e6e6'}]}>
+        <View style={[styles.recipe, {height: DEFAULT_CARD_HEIGHT, backgroundColor: '#e6e6e6'}]}>
           <Text style={styles.recipeTitle}>{props.recipe.title}</Text>
           <Text style={styles.recipeDescription}>{props.recipe.description}</Text>
         </View>
