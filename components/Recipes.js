@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { createRef } from 'react';
 import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Animated, Dimensions } from 'react-native';
 import { Input, Button, Overlay, Text } from 'react-native-elements';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -18,6 +18,7 @@ let oldY = 0;
 
 export default class Recipes extends React.Component {
   y = new Animated.Value(0);
+  flatListRef = createRef();
   constructor(props) {
     super(props);
     this.state = {
@@ -63,8 +64,17 @@ export default class Recipes extends React.Component {
     );
   }
 
-  handleRecipePress = (recipe) => {
+  handleRecipePress = (recipe, index) => {
     this.setState({ selectedRecipe: recipe });
+    console.log(recipe);
+    console.log(index);
+    console.log(this.state.selectedIndex);
+    this.flatListRef.current.scrollToIndex({
+      index: index
+    });
+    if (index + 1 === this.state.selectedIndex) {
+      console.log('entering recipe..');
+    }
   }
 
 
@@ -109,6 +119,7 @@ export default class Recipes extends React.Component {
             snapToAlignment={"start"}
             snapToInterval={CARD_HEIGHT}
             decelerationRate={0.993}
+            ref={this.flatListRef}
           />
         </View>
       </SafeAreaView>

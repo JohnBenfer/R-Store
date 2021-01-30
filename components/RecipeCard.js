@@ -85,7 +85,7 @@ const RecipeCard = (props) => {
       style={[styles.card, {opacity, transform: [{ translateY }, { scaleX }, { scaleY }] }]}
       key={index}
     >
-      <Pressable onPress={() => props.handleRecipePress(recipe)}>
+      <Pressable onPress={() => props.handleRecipePress(recipe, index)}>
         <View style={[styles.recipe, {height: DEFAULT_CARD_HEIGHT, backgroundColor: '#e6e6e6'}]}>
           <Text style={styles.recipeTitle}>{props.recipe.title}</Text>
           <Text style={styles.recipeDescription}>{props.recipe.description}</Text>
