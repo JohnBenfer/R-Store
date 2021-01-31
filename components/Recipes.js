@@ -1,5 +1,5 @@
 import React, { createRef } from 'react';
-import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Animated, TextInput, TouchableHighlight } from 'react-native';
+import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Animated, TextInput, TouchableHighlight, LayoutAnimation } from 'react-native';
 import { Input, Button, Overlay, Text, Icon } from 'react-native-elements';
 import { ScrollView, } from 'react-native-gesture-handler';
 import Carousel from 'react-native-snap-carousel';
@@ -120,15 +120,16 @@ export default class Recipes extends React.Component {
   }
 
   recipeSearch = (searchText) => {
+    this.setState({ searchText: searchText });
     if (!searchText || searchText.length < 2) {
       if (this.state.displayRecipes && this.state.displayRecipes.length > 0) {
         this.flatListRef.current.scrollToIndex({ index: 0 });
       }
+      LayoutAnimation.easeInEaseOut();
       this.setState({ displayRecipes: this.state.recipes });
       return;
     }
-    let text = searchText.toLowerCase();
-    // this.setState({ searchText: searchText });
+    let text = searchText.toLowerCase().trim();
     let newRecipes = [];
     let newRecipes1 = [];
     let newRecipes2 = [];
@@ -156,6 +157,7 @@ export default class Recipes extends React.Component {
       }
     });
     newRecipes = newRecipes.concat(newRecipes1, newRecipes2, newRecipes3);
+    LayoutAnimation.easeInEaseOut();
     this.setState({ displayRecipes: newRecipes });
   }
 
@@ -200,23 +202,35 @@ export default class Recipes extends React.Component {
       <SafeAreaView>
         <StatusBar barStyle={Platform.OS === 'android' ? 'light-content' : 'dark-content'} />
         <View style={styles.container}>
-          <Overlay
-            isVisible={showSearch}
-            onBackdropPress={() => this.setState({ showSearch: !showSearch })}
-            overlayStyle={styles.overlayStyle}
-            backdropStyle={{ opacity: 0.4, }}
-          >
-            <View>
-              <TextInput
-                style={{ width: '99%', alignSelf: 'center' }}
-                autoFocus={false}
-                ref={this.searchRef}
-                onSubmitEditing={() => this.setState({ showSearch: false })}
-                placeholder='Search...'
-                onChangeText={this.recipeSearch}
+          {showSearch ? <View style={[styles.searchBar, styles.row]}>
+            <TextInput
+              style={{ width: '83%', backgroundColor: '#ebebeb', borderRadius: 5, padding: 3, paddingLeft: 7 }}
+              autoFocus={false}
+              ref={this.searchRef}
+              onSubmitEditing={() => {
+                this.searchRef.current.blur();
+                !this.state.searchText || this.state.searchText.length < 1 ? this.setState({ showSearch: false }) : null;
+              }
+              }
+              placeholder='Search...'
+              onChangeText={this.recipeSearch}
+            />
+            <View style={{ position: 'absolute', right: 8, marginTop: 3}}>
+              <Button
+                title='cancel'
+                onPress={() => {
+                  if (this.state.searchText && this.state.searchText.length > 0) {
+                    this.flatListRef.current.scrollToIndex({index: 0});
+                  }
+                  this.searchRef.current.blur();
+                  this.setState({ showSearch: false, displayRecipes: this.state.recipes, searchText: '' });
+                }}
+                type="clear"
+                titleStyle={styles.cancelButtonTitle}
+                buttonStyle={{ backgroundColor: 'transparent' }}
               />
             </View>
-          </Overlay>
+          </View> : null}
           <AnimatedFlatList
             data={displayRecipes}
             renderItem={({ index, item }) => (
@@ -267,5 +281,18 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     marginTop: 200,
+  },
+  searchBar: {
+    backgroundColor: '#fff',
+    paddingVertical: 10,
+    paddingHorizontal: 5,
+    width: '100%',
+  },
+  row: {
+    flexDirection: 'row',
+  },
+  cancelButtonTitle: {
+    fontSize: 14,
+    marginVertical: 0,
   },
 });
