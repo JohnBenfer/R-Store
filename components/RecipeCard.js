@@ -25,6 +25,7 @@ const styles = StyleSheet.create({
   card: {
     marginVertical: MARGIN,
     alignSelf: "center",
+    overflow: 'hidden',
   },
   recipeTitle: {
     textAlign: 'center',
@@ -76,6 +77,10 @@ const RecipeCard = (props) => {
     outputRange: [0, 1, 1, 0.7],
   });
 
+  const renderIngredients = () => {
+    return recipe.ingredients?.map((i, index) => <Text key={index}>{i.quantity + ' ' + i.title}</Text>);
+  }
+
   return (
     <Animated.View
       style={[styles.card, {opacity, transform: [{ translateY }, { scaleX }, { scaleY }] }]}
@@ -85,6 +90,7 @@ const RecipeCard = (props) => {
         <View style={[styles.recipe, {height: DEFAULT_CARD_HEIGHT, backgroundColor: '#e6e6e6'}]}>
           <Text style={styles.recipeTitle}>{props.recipe.title}</Text>
           <Text style={styles.recipeDescription}>{props.recipe.description}</Text>
+          {renderIngredients()}
         </View>
       </Pressable>
     </Animated.View>

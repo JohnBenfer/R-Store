@@ -17,6 +17,7 @@
     "expo-haptics": "~8.4.0",
     "expo-splash-screen": "~0.8.1",
     "expo-status-bar": "~1.0.3",
+    "expo-image-picker": "~9.2.0",
     "firebase": "7.9.0",
     "react": "16.13.1",
     "react-dom": "16.13.1",

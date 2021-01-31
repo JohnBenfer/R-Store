@@ -87,7 +87,7 @@ const RecipesNavigator = (props) => {
         name="CreateRecipe"
         component={CreateRecipe}
         options={{
-          headerShown: true,
+          headerShown: false,
           title: 'Create Recipe',
           headerTitleAlign: 'center',
         }}

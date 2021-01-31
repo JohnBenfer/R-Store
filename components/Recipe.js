@@ -19,12 +19,12 @@ export default class Inventory extends React.Component {
 
 
   render() {
-
+    const {recipe} = this.state;
     return (
       <SafeAreaView>
         <View>
-          <Text>
-            Hello Recipe
+          <Text style={styles.title}>
+            {recipe.title}
           </Text>
         </View>
       </SafeAreaView>
@@ -38,5 +38,10 @@ const styles = StyleSheet.create({
     paddingRight: 20,
     backgroundColor: '#f2f2f2',
     marginBottom: 10
+  },
+  title: {
+    fontSize: 20,
+    color: 'black',
+    alignSelf: 'center',
   }
 });
