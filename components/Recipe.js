@@ -6,7 +6,7 @@ export default class Inventory extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      recipes: [],
+      recipe: props.route.params.recipe,
     };
   }
 
@@ -14,11 +14,7 @@ export default class Inventory extends React.Component {
    * Receives the current user as this.props.route.params.user
    */
   async componentDidMount() {
-    // prevents going back to signup page
-    this.props.navigation.addListener('beforeRemove', (e) => {
-      e.preventDefault();
-      // console.warn(e);
-    });
+    console.log(this.state.recipe.title);
   }
 
 

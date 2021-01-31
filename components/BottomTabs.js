@@ -5,6 +5,7 @@ import { Icon, Text } from 'react-native-elements';
 import Recipes from './Recipes';
 import Inventory from './Inventory';
 import Recipe from './Recipe';
+import CreateRecipe from './CreateRecipe';
 
 const BottomTab = createBottomTabNavigator();
 
@@ -62,7 +63,7 @@ const RecipesNavigator = (props) => {
     <HomeStack.Navigator
       screenOptions={{
         headerBackTitleVisible: false,
-        headerBackImage: () => (            
+        headerBackImage: () => (
           <Icon
             type="ionicon"
             size={30}
@@ -76,17 +77,35 @@ const RecipesNavigator = (props) => {
       <HomeStack.Screen
         name="RecipesScreen"
         component={Recipes}
-        options={{ 
+        options={{
           headerShown: true,
           title: 'Recipes',
           headerLeft: null,
         }}
       />
       <HomeStack.Screen
+        name="CreateRecipe"
+        component={CreateRecipe}
+        options={{
+          headerShown: true,
+          title: 'Create Recipe',
+          headerTitleAlign: 'center',
+        }}
+      />
+      <HomeStack.Screen
+        name="Recipe"
+        component={Recipe}
+        options={{
+          headerShown: true,
+          title: 'Recipe',
+          headerTitleAlign: 'center',
+        }}
+      />
+      <HomeStack.Screen
         name="InventoryScreen"
         component={Inventory}
-        options={{ 
-          headerShown: true, 
+        options={{
+          headerShown: true,
           title: 'Inventory',
           headerTitleAlign: 'center',
           headerStyle: {
@@ -104,7 +123,7 @@ const InventoryNavigator = (props) => {
     <InventoryStack.Screen
       name="Inventory"
       component={Inventory}
-      options={{ 
+      options={{
         headerShown: true,
         title: 'Inventory',
         headerTitleAlign: 'center',

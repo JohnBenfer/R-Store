@@ -13,13 +13,13 @@ const height = wHeight - 64;
 const styles = StyleSheet.create({
   recipe: {
     padding: 5,
-    borderWidth: 3,
+    borderWidth: 2,
     borderColor: 'black',
     borderRadius: 10,
     backgroundColor: '#f2f2f2',
     // height: DEFAULT_CARD_HEIGHT,
     marginVertical: 0,
-    width: width*0.8,
+    width: width*0.85,
 
   },
   card: {
@@ -75,11 +75,7 @@ const RecipeCard = (props) => {
     inputRange: [isDisappearing, isTop, isBottom, isAppearing],
     outputRange: [0, 1, 1, 0.7],
   });
-  // const recipeHeight = position.interpolate({
-  //   inputRange: [isDisappearing, isTop, isMiddleBottom, isMiddleTop, isBottom, isAppearing],
-  //   outputRange: [DEFAULT_CARD_HEIGHT, DEFAULT_CARD_HEIGHT, DEFAULT_CARD_HEIGHT*2, DEFAULT_CARD_HEIGHT*2, DEFAULT_CARD_HEIGHT, DEFAULT_CARD_HEIGHT],
-  //   extrapolate: "clamp",
-  // });
+
   return (
     <Animated.View
       style={[styles.card, {opacity, transform: [{ translateY }, { scaleX }, { scaleY }] }]}

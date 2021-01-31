@@ -1,7 +1,7 @@
 import React, { createRef } from 'react';
-import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Animated, Dimensions } from 'react-native';
-import { Input, Button, Overlay, Text } from 'react-native-elements';
-import { ScrollView } from 'react-native-gesture-handler';
+import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Animated, TextInput, TouchableHighlight } from 'react-native';
+import { Input, Button, Overlay, Text, Icon } from 'react-native-elements';
+import { ScrollView, } from 'react-native-gesture-handler';
 import Carousel from 'react-native-snap-carousel';
 import RecipeCard from './RecipeCard';
 
@@ -19,18 +19,34 @@ let oldY = 0;
 export default class Recipes extends React.Component {
   y = new Animated.Value(0);
   flatListRef = createRef();
+  searchRef = createRef();
   constructor(props) {
     super(props);
     this.state = {
       recipes: this.loadMockRecipes(),
       selectedRecipe: {},
       selectedIndex: 1,
+      showSearch: false,
     };
 
   }
 
   async componentDidMount() {
     // prevents going back to signup page
+    this.props.navigation.setOptions({
+      headerRight: () => (
+        <TouchableHighlight style={{borderWidth: 2, borderColor: '#636363', borderRadius: 6, marginHorizontal: 7,}}>
+          <Icon
+            style={{alignSelf: 'center'}}
+            name="md-add"
+            type="ionicon"
+            color='#919191'
+            size={20}
+            onPress={this.createRecipe}
+          />
+        </TouchableHighlight>
+      ),
+    });
     this.props.navigation.addListener('beforeRemove', (e) => {
       e.preventDefault();
       // console.warn(e);
@@ -60,27 +76,55 @@ export default class Recipes extends React.Component {
         { id: 18, title: 'pizza', description: 'a circle of bread and meat' },
         { id: 19, title: 'meat load', description: 'a loaf of meat' },
         { id: 20, title: 'mashed potatoes', description: 'a mashed of potatoes' },
+        { id: 21, title: 'meatballs', description: 'a ball of meat' },
+        { id: 22, title: 'pie', description: 'a circle of yum' },
+        { id: 23, title: 'pizza', description: 'a circle of bread and meat' },
+        { id: 24, title: 'meat load', description: 'a loaf of meat' },
+        { id: 25, title: 'mashed potatoes', description: 'a mashed of potatoes' },
+        { id: 26, title: 'meatballs', description: 'a ball of meat' },
+        { id: 27, title: 'pie', description: 'a circle of yum' },
+        { id: 28, title: 'pizza', description: 'a circle of bread and meat' },
+        { id: 29, title: 'meat load', description: 'a loaf of meat' },
+        { id: 31, title: 'meatballs', description: 'a ball of meat' },
+        { id: 32, title: 'pie', description: 'a circle of yum' },
+        { id: 33, title: 'pizza', description: 'a circle of bread and meat' },
+        { id: 34, title: 'meat load', description: 'a loaf of meat' },
+        { id: 35, title: 'mashed potatoes', description: 'a mashed of potatoes' },
+        { id: 36, title: 'meatballs', description: 'a ball of meat' },
+        { id: 37, title: 'pie', description: 'a circle of yum' },
+        { id: 38, title: 'pizza', description: 'a circle of bread and meat' },
+        { id: 39, title: 'meat load', description: 'a loaf of meat' },
       ]
     );
   }
 
+  createRecipe = () => {
+
+    this.props.navigation.push("CreateRecipe", { });
+  }
+
+  searchPress = () => {
+    this.setState({ showSearch: true });
+    setTimeout(() => {
+      this.searchRef.current.focus();
+    }, 150);
+  }
+
   handleRecipePress = (recipe, index) => {
-    this.setState({ selectedRecipe: recipe });
-    console.log(recipe);
-    console.log(index);
-    console.log(this.state.selectedIndex);
+    this.state.selectedRecipe !== recipe ? this.setState({ selectedRecipe: recipe }) : null;
     this.flatListRef.current.scrollToIndex({
       index: index
     });
     if (index + 1 === this.state.selectedIndex) {
-      console.log('entering recipe..');
+      this.props.navigation.push("Recipe", {recipe: recipe});
     }
   }
 
 
   render() {
     let selectedIndex = 1;
-    
+    const { showSearch } = this.state;
+
     const onScroll = Animated.event([{ nativeEvent: { contentOffset: { y: this.y } } }], {
       useNativeDriver: true,
       listener: (e) => {
@@ -107,6 +151,22 @@ export default class Recipes extends React.Component {
       <SafeAreaView>
         <StatusBar barStyle={Platform.OS === 'android' ? 'light-content' : 'dark-content'} />
         <View style={styles.container}>
+          <Overlay
+            isVisible={showSearch}
+            onBackdropPress={() => this.setState({ showSearch: !showSearch })}
+            overlayStyle={styles.overlayStyle}
+            backdropStyle={{ opacity: 0.4, }}
+          >
+            <View>
+              <TextInput
+                style={{ width: '99%', alignSelf: 'center' }}
+                autoFocus={false}
+                ref={this.searchRef}
+                onSubmitEditing={() => this.setState({ showSearch: false })}
+                placeholder='Search...'
+              />
+            </View>
+          </Overlay>
           <AnimatedFlatList
             data={this.state.recipes}
             renderItem={({ index, item }) => (
@@ -122,6 +182,15 @@ export default class Recipes extends React.Component {
             ref={this.flatListRef}
           />
         </View>
+        <View style={styles.button}>
+          <Icon
+            reverse
+            name="md-search"
+            type="ionicon"
+            color={'#bdbdbd'}
+            onPress={this.searchPress}
+          />
+        </View>
       </SafeAreaView>
     );
   }
@@ -129,38 +198,23 @@ export default class Recipes extends React.Component {
 
 const styles = StyleSheet.create({
   container: {
-    paddingLeft: 20,
-    paddingRight: 20,
     backgroundColor: '#f2f2f2',
     marginBottom: 0,
   },
-  carousel: {
-    marginTop: 10,
+  button: {
+    alignSelf: 'flex-end',
+    position: 'absolute',
+    bottom: 0,
+    paddingRight: 5,
+    marginBottom: 5,
   },
-  recipe: {
-    padding: 5,
-    borderWidth: 3,
+  overlayStyle: {
+    width: '90%',
+    borderRadius: 4,
     borderColor: 'black',
-    borderRadius: 10,
-    backgroundColor: '#f2f2f2',
-    height: 250,
-    marginVertical: 5,
-    // flex: 1,
+    borderWidth: 2,
+    position: 'absolute',
+    top: 0,
+    marginTop: 200,
   },
-  focusedRecipe: {
-    height: 400,
-  },
-  unfocusedRecipe: {
-    marginVertical: -50,
-  },
-  recipeTitle: {
-    textAlign: 'center',
-    padding: 5,
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  slideStyle: {
-    // flex: 1,
-    marginVertical: 0,
-  }
 });
