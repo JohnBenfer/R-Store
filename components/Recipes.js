@@ -22,11 +22,14 @@ export default class Recipes extends React.Component {
   searchRef = createRef();
   constructor(props) {
     super(props);
+    const r = this.loadMockRecipes();
     this.state = {
-      recipes: this.loadMockRecipes(),
+      recipes: r,
       selectedRecipe: {},
       selectedIndex: 1,
       showSearch: false,
+      searchText: '',
+      displayRecipes: r,
     };
 
   }
@@ -35,9 +38,9 @@ export default class Recipes extends React.Component {
     // prevents going back to signup page
     this.props.navigation.setOptions({
       headerRight: () => (
-        <TouchableHighlight style={{borderWidth: 2, borderColor: '#636363', borderRadius: 6, marginHorizontal: 7,}}>
+        <TouchableHighlight style={{ borderWidth: 2, borderColor: '#636363', borderRadius: 6, marginHorizontal: 7, }}>
           <Icon
-            style={{alignSelf: 'center'}}
+            style={{ alignSelf: 'center' }}
             name="md-add"
             type="ionicon"
             color='#919191'
@@ -56,11 +59,11 @@ export default class Recipes extends React.Component {
   loadMockRecipes() {
     return (
       [
-        { 
-          id: 1, 
-          title: 'meatballs', 
-          description: 'a ball of meat', 
-          ingredients: [{quantity: '1 c.', title: 'ground beef'}, {quantity: '1/3 c.', title: 'bread crumbs'}, {quantity: '1 c.', title: 'ground beef'}, {quantity: '1/3 c.', title: 'bread crumbs'}, {quantity: '1 c.', title: 'ground beef'}, {quantity: '1/3 c.', title: 'bread crumbs'}, {quantity: '1 c.', title: 'ground beef'}, {quantity: '1/3 c.', title: 'bread crumbs'}, {quantity: '1 c.', title: 'ground beef'}, {quantity: '1/3 c.', title: 'bread crumbs'}, {quantity: '1 c.', title: 'ground beef'}, {quantity: '1/3 c.', title: 'bread crumbs'}, {quantity: '1 c.', title: 'ground beef'}, {quantity: '1/3 c.', title: 'bread crumbs'}, {quantity: '1 c.', title: 'ground beef'}, {quantity: '1/3 c.', title: 'bread crumbs'}, {quantity: '1 c.', title: 'ground beef'}, {quantity: '1/3 c.', title: 'bread crumbs'}, {quantity: '1 c.', title: 'ground beef'}, {quantity: '1/3 c.', title: 'bread crumbs'}, {quantity: '1 c.', title: 'ground beef'}, {quantity: '1/3 c.', title: 'bread crumbs'}, {quantity: '1 c.', title: 'ground beef'}, {quantity: '1/3 c.', title: 'bread crumbs'}, {quantity: '1 c.', title: 'ground beef'}, {quantity: '1/3 c.', title: 'bread crumbs'}, {quantity: '1 c.', title: 'ground beef'}, {quantity: '1/3 c.', title: 'bread crumbs'},],
+        {
+          id: 1,
+          title: 'meatballs',
+          description: 'a ball of meat',
+          ingredients: [{ quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' },],
           directions: ['Add the meat', 'add the bread crumbs', 'add seasoning', 'mix togehter', 'form balls', 'bake 30 minutes at 350'],
         },
         { id: 2, title: 'pie', description: 'a circle of yum' },
@@ -72,9 +75,9 @@ export default class Recipes extends React.Component {
         { id: 8, title: 'pizza', description: 'a circle of bread and meat' },
         { id: 9, title: 'meat load', description: 'a loaf of meat' },
         { id: 10, title: 'mashed potatoes', description: 'a mashed of potatoes' },
-        { id: 11, title: 'meatballs', description: 'a ball of meat' },
-        // { id: 12, title: 'pie', description: 'a circle of yum' },
-        // { id: 13, title: 'pizza', description: 'a circle of bread and meat' },
+        { id: 11, title: 'roasted chicken', description: 'a whole bird' },
+        { id: 12, title: 'cbr pizza', description: 'a pizza with cbr', ingredients: [{ quantity: '1 c.', title: 'chicken' }, { quantity: '1/2 c.', title: 'bacon' }] },
+        { id: 13, title: 'enchilada', description: 'tortilla with chicken and cheese' },
         // { id: 14, title: 'meat load', description: 'a loaf of meat' },
         // { id: 15, title: 'mashed potatoes', description: 'a mashed of potatoes' },
         // { id: 16, title: 'meatballs', description: 'a ball of meat' },
@@ -106,7 +109,7 @@ export default class Recipes extends React.Component {
 
   createRecipe = () => {
 
-    this.props.navigation.push("CreateRecipe", { });
+    this.props.navigation.push("CreateRecipe", {});
   }
 
   searchPress = () => {
@@ -116,20 +119,60 @@ export default class Recipes extends React.Component {
     }, 150);
   }
 
+  recipeSearch = (searchText) => {
+    if (!searchText || searchText.length < 2) {
+      if (this.state.displayRecipes && this.state.displayRecipes.length > 0) {
+        this.flatListRef.current.scrollToIndex({ index: 0 });
+      }
+      this.setState({ displayRecipes: this.state.recipes });
+      return;
+    }
+    let text = searchText.toLowerCase();
+    // this.setState({ searchText: searchText });
+    let newRecipes = [];
+    let newRecipes1 = [];
+    let newRecipes2 = [];
+    let newRecipes3 = [];
+    let match = false;
+    this.state.recipes.forEach((recipe) => {
+      match = false;
+      if (recipe.title.toLowerCase().startsWith(text)) {
+        newRecipes.push(recipe);
+        match = true;
+      } else if (recipe.title.toLowerCase().includes(text)) {
+        newRecipes1.push(recipe);
+        match = true;
+      } else {
+        recipe.ingredients?.some((i) => {
+          if (i.title.toLowerCase().includes(text)) {
+            newRecipes2.push(recipe);
+            match = true;
+            return true;
+          }
+        });
+        if (!match && recipe.description.toLowerCase().includes(text)) {
+          newRecipes3.push(recipe);
+        }
+      }
+    });
+    newRecipes = newRecipes.concat(newRecipes1, newRecipes2, newRecipes3);
+    this.setState({ displayRecipes: newRecipes });
+  }
+
   handleRecipePress = (recipe, index) => {
     this.state.selectedRecipe !== recipe ? this.setState({ selectedRecipe: recipe }) : null;
     this.flatListRef.current.scrollToIndex({
       index: index
     });
     if (index + 1 === this.state.selectedIndex) {
-      this.props.navigation.push("Recipe", {recipe: recipe});
+      this.props.navigation.push("Recipe", { recipe: recipe });
     }
   }
 
 
   render() {
     let selectedIndex = 1;
-    const { showSearch } = this.state;
+    const { showSearch, recipes, displayRecipes } = this.state;
 
     const onScroll = Animated.event([{ nativeEvent: { contentOffset: { y: this.y } } }], {
       useNativeDriver: true,
@@ -170,11 +213,12 @@ export default class Recipes extends React.Component {
                 ref={this.searchRef}
                 onSubmitEditing={() => this.setState({ showSearch: false })}
                 placeholder='Search...'
+                onChangeText={this.recipeSearch}
               />
             </View>
           </Overlay>
           <AnimatedFlatList
-            data={this.state.recipes}
+            data={displayRecipes}
             renderItem={({ index, item }) => (
               <RecipeCard index={index} y={this.y} recipe={item} selectedIndex={this.state.selectedIndex} selected={item.id === this.state.selectedRecipe?.id} handleRecipePress={this.handleRecipePress} />
             )}
@@ -206,6 +250,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#f2f2f2',
     marginBottom: 0,
+    height: '100%',
   },
   button: {
     alignSelf: 'flex-end',
