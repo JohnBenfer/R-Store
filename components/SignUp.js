@@ -1,6 +1,8 @@
 import React from 'react';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-elements';
+import * as FileSystem from 'expo-file-system';
+import {RecipesPath} from '../Constants';
 
 let user;
 
@@ -14,7 +16,14 @@ class SignUp extends React.Component {
   }
 
   componentDidMount() {
-    this.props.navigation.navigate('Root', { });
+    FileSystem.readAsStringAsync(RecipesPath).then((res) => {
+      this.props.navigation.navigate('Root', {  });
+    }).catch(() => {
+      console.log('creating new recipes file');
+      FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify({recipes: []}));
+      this.props.navigation.navigate('Root', {  });
+    })
+    
   }
 
 

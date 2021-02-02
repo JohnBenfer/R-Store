@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Animated, Dimensions, Pressable } from 'react-native';
+import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Animated, Dimensions, Pressable, Image } from 'react-native';
 import { Input, Button, Overlay, Text } from 'react-native-elements';
 
 const DEFAULT_CARD_HEIGHT = 480;
@@ -12,10 +12,10 @@ const height = wHeight - 64;
 
 const styles = StyleSheet.create({
   recipe: {
-    padding: 5,
+    padding: 0,
     borderWidth: 2,
     borderColor: 'black',
-    borderRadius: 10,
+    borderRadius: 5,
     backgroundColor: '#f2f2f2',
     // height: DEFAULT_CARD_HEIGHT,
     marginVertical: 0,
@@ -33,6 +33,12 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
+  recipeDescription: {
+    paddingHorizontal: 5
+  },
+  ingredients: {
+    paddingHorizontal: 5,
+  }
 
 })
 // props: recipe, y, index
@@ -55,7 +61,7 @@ const RecipeCard = (props) => {
     ),
     position.interpolate({
       inputRange: [isDisappearing, isTop, isBottom, isAppearing],
-      outputRange: [CARD_HEIGHT/4, 20, 0, -CARD_HEIGHT / 6],
+      outputRange: [CARD_HEIGHT/4, 20, 0, -30],
       extrapolate: "clamp",
     })
   );
@@ -78,7 +84,7 @@ const RecipeCard = (props) => {
   });
 
   const renderIngredients = () => {
-    return recipe.ingredients?.map((i, index) => <Text key={index}>{i.quantity + ' ' + i.title}</Text>);
+    return recipe.ingredients?.map((i, index) => <Text style={styles.ingredients} key={index}>{i.title}</Text>);
   }
 
   return (
@@ -89,6 +95,7 @@ const RecipeCard = (props) => {
       <Pressable onPress={() => props.handleRecipePress(recipe, index)}>
         <View style={[styles.recipe, {height: DEFAULT_CARD_HEIGHT, backgroundColor: '#e6e6e6'}]}>
           <Text style={styles.recipeTitle}>{props.recipe.title}</Text>
+          {recipe.images.length > 0 && <Image source={{uri: recipe.images[0]}} style={{width: '100%', height: 300, marginVertical: 10}}/>}
           <Text style={styles.recipeDescription}>{props.recipe.description}</Text>
           {renderIngredients()}
         </View>

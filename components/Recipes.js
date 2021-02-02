@@ -4,6 +4,8 @@ import { Input, Button, Overlay, Text, Icon } from 'react-native-elements';
 import { ScrollView, } from 'react-native-gesture-handler';
 import Carousel from 'react-native-snap-carousel';
 import RecipeCard from './RecipeCard';
+import * as FileSystem from 'expo-file-system';
+import {RecipesPath} from '../Constants';
 
 let yPosition = 0;
 let currentIndex = 0;
@@ -22,19 +24,20 @@ export default class Recipes extends React.Component {
   searchRef = createRef();
   constructor(props) {
     super(props);
-    const r = this.loadMockRecipes();
     this.state = {
-      recipes: r,
+      recipes: [],
       selectedRecipe: {},
       selectedIndex: 1,
       showSearch: false,
       searchText: '',
-      displayRecipes: r,
+      displayRecipes: []
     };
 
   }
 
   async componentDidMount() {
+    
+    this.getRecipes();
     // prevents going back to signup page
     this.props.navigation.setOptions({
       headerRight: () => (
@@ -54,6 +57,13 @@ export default class Recipes extends React.Component {
       e.preventDefault();
       // console.warn(e);
     });
+  }
+
+  getRecipes = () => {
+    FileSystem.readAsStringAsync(RecipesPath).then((res) => {
+      let r = JSON.parse(res).recipes.reverse();
+      this.setState({ recipes: r, displayRecipes: r });
+    })
   }
 
   loadMockRecipes() {
@@ -107,9 +117,16 @@ export default class Recipes extends React.Component {
     );
   }
 
+  addRecipe = (recipe) => {
+    let {recipes, displayRecipes} = this.state;
+    recipes.unshift(recipe);
+    // displayRecipes.push(recipe);
+    this.setState({ recipes: recipes });
+  }
+
   createRecipe = () => {
 
-    this.props.navigation.push("CreateRecipe", {});
+    this.props.navigation.push("CreateRecipe", {addRecipe: this.addRecipe});
   }
 
   searchPress = () => {
@@ -179,7 +196,6 @@ export default class Recipes extends React.Component {
     const onScroll = Animated.event([{ nativeEvent: { contentOffset: { y: this.y } } }], {
       useNativeDriver: true,
       listener: (e) => {
-        // console.log(e.nativeEvent.contentOffset.y);
         const oldIndex = this.state.selectedIndex;
         let currentY = e.nativeEvent.contentOffset.y;
         if (currentY > oldY) {
@@ -237,7 +253,7 @@ export default class Recipes extends React.Component {
               <RecipeCard index={index} y={this.y} recipe={item} selectedIndex={this.state.selectedIndex} selected={item.id === this.state.selectedRecipe?.id} handleRecipePress={this.handleRecipePress} />
             )}
             bounces={true}
-            keyExtractor={(recipe) => recipe.id.toString()}
+            keyExtractor={(item, index) => index.toString()}
             scrollEventThrottle={16}
             {...{ onScroll }}
             snapToAlignment={"start"}
