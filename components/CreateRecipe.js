@@ -10,6 +10,7 @@ import { ScrollView } from 'react-native';
 
 export default class Inventory extends React.Component {
   ingredientRef = React.createRef();
+  photoListRef = React.createRef();
 
   constructor(props) {
     super(props);
@@ -43,6 +44,8 @@ export default class Inventory extends React.Component {
       images.push(result.uri);
       LayoutAnimation.easeInEaseOut();
       this.setState({ images: images });
+      setTimeout(() => this.photoListRef.current.scrollToIndex({index: images.length-1}), 1);
+      
     }
   }
 
@@ -62,6 +65,7 @@ export default class Inventory extends React.Component {
       images.push(result.uri);
       LayoutAnimation.easeInEaseOut();
       this.setState({ images: images });
+      setTimeout(() => this.photoListRef.current.scrollToIndex({index: images.length-1}), 1);
     }
   }
 
@@ -134,7 +138,7 @@ export default class Inventory extends React.Component {
     return (
       <SafeAreaView>
         <View>
-          <View style={styles.row}>
+          <View style={[styles.row, {marginBottom: 15}]}>
             <View style={styles.cancelButtonContainer}>
               <Button
                 onPress={() => this.props.navigation.goBack()}
@@ -155,7 +159,7 @@ export default class Inventory extends React.Component {
             </View>
           </View>
           <ScrollView>
-            <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 18, alignSelf: 'center', fontWeight: 'bold' }}>
+            <Text style={{ marginTop: 5, marginBottom: 5, paddingHorizontal: 15, fontSize: 18, alignSelf: 'center', fontWeight: 'bold' }}>
               Recipe Name
           </Text>
             <View style={{ marginHorizontal: 15 }}>
@@ -288,16 +292,18 @@ export default class Inventory extends React.Component {
                   }}
                   keyExtractor={(image, index) => index.toString()}
                   contentContainerStyle={{ paddingHorizontal: 10 }}
-                  snapToAlignment={"start"}
-                  snapToInterval={230}
+                  snapToAlignment={"center"}
+                  snapToInterval={200}
                   decelerationRate={0.993}
+                  showsHorizontalScrollIndicator={false}
+                  ref={this.photoListRef}
                 /> :
                   <View style={{ alignSelf: 'center', justifyContent: 'center' }}>
                     <Icon style={{}} type="MaterialIcons" name="insert-photo" size={165} color="#bfbfbf" onPress={this.addImage} />
                   </View>}
               </View>
             </View>
-            <View style={{ height: 70 }}>
+            <View style={{ height: 100 }}>
 
             </View>
           </ScrollView>
@@ -345,7 +351,8 @@ const styles = StyleSheet.create({
     width: Dimensions.get("window").width * 0.85 - 10,
     borderWidth: 0,
     backgroundColor: '#dbdbdb',
-    borderRadius: 10,
+    borderBottomLeftRadius: 10,
+    borderTopLeftRadius: 10,
     justifyContent: 'center'
   },
   photoRow: {

@@ -1,6 +1,8 @@
 import React from 'react';
-import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Animated, Dimensions, Pressable, Image } from 'react-native';
+import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Animated, Dimensions, Pressable, Image, ImageBackground } from 'react-native';
 import { Input, Button, Overlay, Text } from 'react-native-elements';
+import { LinearGradient } from 'expo-linear-gradient';
+import Recipes from './Recipes';
 
 const DEFAULT_CARD_HEIGHT = 480;
 const MARGIN = 12;
@@ -19,7 +21,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f2f2f2',
     // height: DEFAULT_CARD_HEIGHT,
     marginVertical: 0,
-    width: width*0.85,
+    width: width * 0.85,
 
   },
   card: {
@@ -54,14 +56,14 @@ const RecipeCard = (props) => {
     Animated.add(
       y,
       y.interpolate({
-        inputRange: [0, 0.00001+ index * CARD_HEIGHT],
+        inputRange: [0, 0.00001 + index * CARD_HEIGHT],
         outputRange: [0, -index * CARD_HEIGHT],
         extrapolateRight: "clamp",
       })
     ),
     position.interpolate({
       inputRange: [isDisappearing, isTop, isBottom, isAppearing],
-      outputRange: [CARD_HEIGHT/4, 20, 0, -30],
+      outputRange: [CARD_HEIGHT / 4, 20, 0, -30],
       extrapolate: "clamp",
     })
   );
@@ -89,13 +91,17 @@ const RecipeCard = (props) => {
 
   return (
     <Animated.View
-      style={[styles.card, {opacity, transform: [{ translateY }, { scaleX }, { scaleY }] }]}
+      style={[styles.card, { opacity, transform: [{ translateY }, { scaleX }, { scaleY }] }]}
       key={index}
     >
       <Pressable onPress={() => props.handleRecipePress(recipe, index)}>
-        <View style={[styles.recipe, {height: DEFAULT_CARD_HEIGHT, backgroundColor: '#e6e6e6'}]}>
+        <View style={[styles.recipe, { height: DEFAULT_CARD_HEIGHT, backgroundColor: '#e6e6e6' }]}>
           <Text style={styles.recipeTitle}>{props.recipe.title}</Text>
-          {recipe.images.length > 0 && <Image source={{uri: recipe.images[0]}} style={{width: '100%', height: 300, marginVertical: 10}}/>}
+          {recipe.images.length > 0 && (
+            <ImageBackground source={{ uri: recipe.images[0] }} style={{ width: '100%', height: 300, marginTop: -13, zIndex: -1}} >
+              <LinearGradient colors={['#e6e6e6', '#FFFFFF00']} style={{ position: 'absolute', top: 0, height: 60, width: '100%' }} />
+            </ImageBackground>
+          )}
           <Text style={styles.recipeDescription}>{props.recipe.description}</Text>
           {renderIngredients()}
         </View>

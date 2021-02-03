@@ -1,11 +1,12 @@
 import React, { createRef } from 'react';
-import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Animated, TextInput, TouchableHighlight, LayoutAnimation } from 'react-native';
+import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Animated, TextInput, TouchableHighlight, LayoutAnimation, Pressable } from 'react-native';
 import { Input, Button, Overlay, Text, Icon } from 'react-native-elements';
 import { ScrollView, } from 'react-native-gesture-handler';
 import Carousel from 'react-native-snap-carousel';
 import RecipeCard from './RecipeCard';
 import * as FileSystem from 'expo-file-system';
-import {RecipesPath} from '../Constants';
+import { RecipesPath } from '../Constants';
+import BottomSheet from 'reanimated-bottom-sheet';
 
 let yPosition = 0;
 let currentIndex = 0;
@@ -22,6 +23,7 @@ export default class Recipes extends React.Component {
   y = new Animated.Value(0);
   flatListRef = createRef();
   searchRef = createRef();
+  sheetRef = createRef();
   constructor(props) {
     super(props);
     this.state = {
@@ -30,18 +32,19 @@ export default class Recipes extends React.Component {
       selectedIndex: 1,
       showSearch: false,
       searchText: '',
-      displayRecipes: []
+      displayRecipes: [],
+      showFullRecipe: false,
     };
 
   }
 
   async componentDidMount() {
-    
+
     this.getRecipes();
     // prevents going back to signup page
     this.props.navigation.setOptions({
       headerRight: () => (
-        <TouchableHighlight style={{ borderWidth: 2, borderColor: '#636363', borderRadius: 6, marginHorizontal: 7, }}>
+        <Pressable style={{ borderWidth: 2, borderColor: '#636363', borderRadius: 6, marginHorizontal: 7, }} onPress={this.createRecipe} hitSlop={10}>
           <Icon
             style={{ alignSelf: 'center' }}
             name="md-add"
@@ -50,7 +53,7 @@ export default class Recipes extends React.Component {
             size={20}
             onPress={this.createRecipe}
           />
-        </TouchableHighlight>
+        </Pressable>
       ),
     });
     this.props.navigation.addListener('beforeRemove', (e) => {
@@ -118,15 +121,15 @@ export default class Recipes extends React.Component {
   }
 
   addRecipe = (recipe) => {
-    let {recipes, displayRecipes} = this.state;
+    let { recipes, displayRecipes } = this.state;
     recipes.unshift(recipe);
     // displayRecipes.push(recipe);
+    setTimeout(() => this.flatListRef.current.scrollToIndex({ index: 0 }), 150);
     this.setState({ recipes: recipes });
   }
 
   createRecipe = () => {
-
-    this.props.navigation.push("CreateRecipe", {addRecipe: this.addRecipe});
+    this.props.navigation.push("CreateRecipe", { addRecipe: this.addRecipe });
   }
 
   searchPress = () => {
@@ -184,14 +187,27 @@ export default class Recipes extends React.Component {
       index: index
     });
     if (index + 1 === this.state.selectedIndex) {
-      this.props.navigation.push("Recipe", { recipe: recipe });
+      // this.props.navigation.push("Recipe", { recipe: recipe });
+      setTimeout(() => this.sheetRef.current.snapTo(0), 1);
+      this.setState({ showFullRecipe: true });
     }
   }
 
+  renderContent = () => (
+    <View
+      style={{
+        backgroundColor: 'white',
+        padding: 16,
+        height: 450,
+      }}
+    >
+      <Text>Swipe down to close</Text>
+    </View>
+  );
 
   render() {
     let selectedIndex = 1;
-    const { showSearch, recipes, displayRecipes } = this.state;
+    const { showSearch, recipes, displayRecipes, showFullRecipe } = this.state;
 
     const onScroll = Animated.event([{ nativeEvent: { contentOffset: { y: this.y } } }], {
       useNativeDriver: true,
@@ -216,6 +232,15 @@ export default class Recipes extends React.Component {
     });
     return (
       <SafeAreaView>
+        <BottomSheet
+          ref={this.sheetRef}
+          snapPoints={[500, 0]}
+          borderRadius={50}
+          renderContent={this.renderContent}
+          initialSnap={1}
+          enabledBottomInitialAnimation={true}
+          enabledBottomClamp
+        />
         <StatusBar barStyle={Platform.OS === 'android' ? 'light-content' : 'dark-content'} />
         <View style={styles.container}>
           {showSearch ? <View style={[styles.searchBar, styles.row]}>
@@ -231,12 +256,12 @@ export default class Recipes extends React.Component {
               placeholder='Search...'
               onChangeText={this.recipeSearch}
             />
-            <View style={{ position: 'absolute', right: 8, marginTop: 3}}>
+            <View style={{ position: 'absolute', right: 8, marginTop: 3 }}>
               <Button
                 title='cancel'
                 onPress={() => {
                   if (this.state.searchText && this.state.searchText.length > 0) {
-                    this.flatListRef.current.scrollToIndex({index: 0});
+                    this.flatListRef.current.scrollToIndex({ index: 0 });
                   }
                   this.searchRef.current.blur();
                   this.setState({ showSearch: false, displayRecipes: this.state.recipes, searchText: '' });
