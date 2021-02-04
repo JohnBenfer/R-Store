@@ -1,12 +1,14 @@
 import React, { createRef } from 'react';
-import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Animated, TextInput, TouchableHighlight, LayoutAnimation, Pressable } from 'react-native';
+import { StyleSheet, View, SafeAreaView, Dimensions, FlatList, StatusBar, Platform, Animated, TextInput, TouchableHighlight, LayoutAnimation, Pressable } from 'react-native';
 import { Input, Button, Overlay, Text, Icon } from 'react-native-elements';
 import { ScrollView, } from 'react-native-gesture-handler';
 import Carousel from 'react-native-snap-carousel';
 import RecipeCard from './RecipeCard';
+import Recipe from './Recipe';
 import * as FileSystem from 'expo-file-system';
 import { RecipesPath } from '../Constants';
 import BottomSheet from 'reanimated-bottom-sheet';
+import Constants from 'expo-constants';
 
 let yPosition = 0;
 let currentIndex = 0;
@@ -18,6 +20,7 @@ const MARGIN = 12;
 const BOTTOM_TABS = 90;
 const CARD_HEIGHT = DEFAULT_CARD_HEIGHT + MARGIN * 2;
 let oldY = 0;
+const recipeHeight = Dimensions.get("window").height - Constants.statusBarHeight - 140;
 
 export default class Recipes extends React.Component {
   y = new Animated.Value(0);
@@ -186,24 +189,32 @@ export default class Recipes extends React.Component {
     this.flatListRef.current.scrollToIndex({
       index: index
     });
-    if (index + 1 === this.state.selectedIndex) {
+    console.log(index);
+    console.log(this.state.displayRecipes.length);
+    if (index + 1 === this.state.selectedIndex || index + 1 === this.state.displayRecipes.length) {
       // this.props.navigation.push("Recipe", { recipe: recipe });
-      setTimeout(() => this.sheetRef.current.snapTo(0), 1);
-      this.setState({ showFullRecipe: true });
+        setTimeout(() => this.sheetRef.current.snapTo(0), 10);
+        this.setState({ showFullRecipe: true });
+
     }
   }
 
-  renderContent = () => (
-    <View
-      style={{
-        backgroundColor: 'white',
-        padding: 16,
-        height: 450,
-      }}
-    >
-      <Text>Swipe down to close</Text>
-    </View>
-  );
+  renderContent = () => {
+    const r = this.state.displayRecipes[this.state.selectedIndex - 1];
+    return (
+      <View
+        style={{
+          backgroundColor: 'white',
+          padding: 16,
+          height: recipeHeight,
+        }}
+      >
+        {r ? <Recipe recipe={r} height={recipeHeight} /> :
+          <Text>
+            Unable to find recipe
+      </Text>}
+      </View>);
+  }
 
   render() {
     let selectedIndex = 1;
@@ -232,15 +243,16 @@ export default class Recipes extends React.Component {
     });
     return (
       <SafeAreaView>
-        <BottomSheet
+        {this.state.showFullRecipe ? <BottomSheet
           ref={this.sheetRef}
-          snapPoints={[500, 0]}
+          snapPoints={[recipeHeight, 0]}
           borderRadius={50}
           renderContent={this.renderContent}
           initialSnap={1}
           enabledBottomInitialAnimation={true}
-          enabledBottomClamp
-        />
+          onCloseEnd={() => this.setState({showFullRecipe: false})}
+          renderHeader={() => (<View style={{width: 80, justifyContent: 'center', alignSelf: 'center', height: 6, borderRadius: 10, backgroundColor: '#7a7a7a', marginBottom: 5}}></View>)}
+        /> : null}
         <StatusBar barStyle={Platform.OS === 'android' ? 'light-content' : 'dark-content'} />
         <View style={styles.container}>
           {showSearch ? <View style={[styles.searchBar, styles.row]}>
