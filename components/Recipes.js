@@ -185,12 +185,12 @@ export default class Recipes extends React.Component {
     this.flatListRef.current.scrollToIndex({
       index: index
     });
-    if (index + 1 === this.state.selectedIndex || index + 1 === this.state.displayRecipes.length) {
-      // this.props.navigation.push("Recipe", { recipe: recipe });
-      setTimeout(() => this.sheetRef.current.snapTo(0), 10);
-      this.setState({ showFullRecipe: true });
+    // if (index + 1 === this.state.selectedIndex || index + 1 === this.state.displayRecipes.length) {
+    // this.props.navigation.push("Recipe", { recipe: recipe });
+    setTimeout(() => this.sheetRef.current.snapTo(0), 10);
+    this.setState({ showFullRecipe: true });
 
-    }
+    // }
   }
 
   renderContent = () => {
@@ -297,7 +297,7 @@ export default class Recipes extends React.Component {
             keyExtractor={(item, index) => index.toString()}
             scrollEventThrottle={16}
             {...{ onScroll }}
-            snapToAlignment={"start"}
+            snapToAlignment={"center"}
             snapToInterval={CARD_HEIGHT}
             decelerationRate={0.993}
             ref={this.flatListRef}
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   container: {
-    backgroundColor: '#f2f2f2',
+    backgroundColor: '#f0f0f0',
     marginBottom: 0,
     height: '100%',
   },

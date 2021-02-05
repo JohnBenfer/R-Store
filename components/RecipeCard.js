@@ -14,10 +14,10 @@ const height = wHeight - 64;
 const styles = StyleSheet.create({
   recipe: {
     padding: 0,
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: 'black',
-    borderRadius: 5,
-    backgroundColor: '#f2f2f2',
+    borderRadius: 10,
+    backgroundColor: '#fff',
     // height: DEFAULT_CARD_HEIGHT,
     marginVertical: 0,
     width: width * 0.85,
@@ -62,26 +62,26 @@ const RecipeCard = (props) => {
     ),
     position.interpolate({
       inputRange: [isDisappearing, isTop, isBottom, isAppearing],
-      outputRange: [CARD_HEIGHT / 4, 20, 0, -30],
+      outputRange: [-CARD_HEIGHT/4, 20, 0, -30],
       extrapolate: "clamp",
     })
   );
 
   const scaleX = position.interpolate({
     inputRange: [isDisappearing, isTop, isBottom, isAppearing],
-    outputRange: [0.4, 1, 1, 0.6],
+    outputRange: [0.5, 1, 1, 0.6],
     extrapolate: "clamp",
   });
 
   const scaleY = position.interpolate({
     inputRange: [isDisappearing, isTop, isBottom, isAppearing],
-    outputRange: [0.4, 1, 1, 0.6],
+    outputRange: [0.5, 1, 1, 0.6],
     extrapolate: "clamp",
   });
 
   const opacity = position.interpolate({
-    inputRange: [isDisappearing, isTop, isBottom, isAppearing],
-    outputRange: [0, 1, 1, 0.7],
+    inputRange: [isDisappearing+100, isTop, isBottom, isAppearing],
+    outputRange: [0.5, 1, 1, 0.7],
   });
 
   const renderIngredients = () => {
@@ -94,13 +94,16 @@ const RecipeCard = (props) => {
       key={index}
     >
       <Pressable onPress={() => props.handleRecipePress(recipe, index)}>
-        <View style={[styles.recipe, { height: DEFAULT_CARD_HEIGHT, backgroundColor: '#e6e6e6' }]}>
+        <View style={[styles.recipe, { height: DEFAULT_CARD_HEIGHT, backgroundColor: '#fff' }]}>
           <Text style={styles.recipeTitle}>{props.recipe.title}</Text>
-          {recipe.images.length > 0 && (
+          {/* {recipe.images.length > 0 && (
             <ImageBackground source={{ uri: recipe.images[0] }} style={{ width: '100%', height: DEFAULT_CARD_HEIGHT-28, marginTop: -13, zIndex: -1}} >
               <LinearGradient colors={['#e6e6e6', '#FFFFFF00']} style={{ position: 'absolute', top: 0, height: 60, width: '100%' }} />
               <LinearGradient colors={['#FFFFFF00', '#e6e6e6']} style={{ position: 'absolute', bottom: 0, height: 60, width: '100%' }} />
             </ImageBackground>
+          )} */}
+          {recipe.images.length > 0 && (
+            <Image source={{ uri: recipe.images[0] }} style={{ width: '100%', height: DEFAULT_CARD_HEIGHT-37, borderBottomRightRadius: 7, borderBottomLeftRadius: 7}}/>
           )}
           <Text style={styles.recipeDescription}>{props.recipe.description}</Text>
           {renderIngredients()}
