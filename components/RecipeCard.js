@@ -2,9 +2,8 @@ import React from 'react';
 import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Animated, Dimensions, Pressable, Image, ImageBackground } from 'react-native';
 import { Input, Button, Overlay, Text } from 'react-native-elements';
 import { LinearGradient } from 'expo-linear-gradient';
-import Recipes from './Recipes';
 
-const DEFAULT_CARD_HEIGHT = 480;
+const DEFAULT_CARD_HEIGHT = 400;
 const MARGIN = 12;
 const BOTTOM_TABS = 90;
 const CARD_HEIGHT = DEFAULT_CARD_HEIGHT + MARGIN * 2;
@@ -98,8 +97,9 @@ const RecipeCard = (props) => {
         <View style={[styles.recipe, { height: DEFAULT_CARD_HEIGHT, backgroundColor: '#e6e6e6' }]}>
           <Text style={styles.recipeTitle}>{props.recipe.title}</Text>
           {recipe.images.length > 0 && (
-            <ImageBackground source={{ uri: recipe.images[0] }} style={{ width: '100%', height: 300, marginTop: -13, zIndex: -1}} >
+            <ImageBackground source={{ uri: recipe.images[0] }} style={{ width: '100%', height: DEFAULT_CARD_HEIGHT-28, marginTop: -13, zIndex: -1}} >
               <LinearGradient colors={['#e6e6e6', '#FFFFFF00']} style={{ position: 'absolute', top: 0, height: 60, width: '100%' }} />
+              <LinearGradient colors={['#FFFFFF00', '#e6e6e6']} style={{ position: 'absolute', bottom: 0, height: 60, width: '100%' }} />
             </ImageBackground>
           )}
           <Text style={styles.recipeDescription}>{props.recipe.description}</Text>

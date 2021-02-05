@@ -10,12 +10,8 @@ import { RecipesPath } from '../Constants';
 import BottomSheet from 'reanimated-bottom-sheet';
 import Constants from 'expo-constants';
 
-let yPosition = 0;
-let currentIndex = 0;
-const OPEN_HEIGHT = 350;
-const CLOSED_HEIGHT = 100;
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
-const DEFAULT_CARD_HEIGHT = 480;
+const DEFAULT_CARD_HEIGHT = 400;
 const MARGIN = 12;
 const BOTTOM_TABS = 90;
 const CARD_HEIGHT = DEFAULT_CARD_HEIGHT + MARGIN * 2;
@@ -189,18 +185,16 @@ export default class Recipes extends React.Component {
     this.flatListRef.current.scrollToIndex({
       index: index
     });
-    console.log(index);
-    console.log(this.state.displayRecipes.length);
     if (index + 1 === this.state.selectedIndex || index + 1 === this.state.displayRecipes.length) {
       // this.props.navigation.push("Recipe", { recipe: recipe });
-        setTimeout(() => this.sheetRef.current.snapTo(0), 10);
-        this.setState({ showFullRecipe: true });
+      setTimeout(() => this.sheetRef.current.snapTo(0), 10);
+      this.setState({ showFullRecipe: true });
 
     }
   }
 
   renderContent = () => {
-    const r = this.state.displayRecipes[this.state.selectedIndex - 1];
+    const r = this.state.selectedRecipe;
     return (
       <View
         style={{
@@ -209,10 +203,7 @@ export default class Recipes extends React.Component {
           height: recipeHeight,
         }}
       >
-        {r ? <Recipe recipe={r} height={recipeHeight} /> :
-          <Text>
-            Unable to find recipe
-      </Text>}
+        <Recipe recipe={r} height={recipeHeight} />
       </View>);
   }
 
@@ -243,16 +234,29 @@ export default class Recipes extends React.Component {
     });
     return (
       <SafeAreaView>
-        {this.state.showFullRecipe ? <BottomSheet
-          ref={this.sheetRef}
-          snapPoints={[recipeHeight, 0]}
-          borderRadius={50}
-          renderContent={this.renderContent}
-          initialSnap={1}
-          enabledBottomInitialAnimation={true}
-          onCloseEnd={() => this.setState({showFullRecipe: false})}
-          renderHeader={() => (<View style={{width: 80, justifyContent: 'center', alignSelf: 'center', height: 6, borderRadius: 10, backgroundColor: '#7a7a7a', marginBottom: 5}}></View>)}
-        /> : null}
+        {this.state.disabled ?
+          <Pressable
+            style={styles.disabledView}
+            onPress={() => {
+              this.sheetRef.current.snapTo(1);
+              this.setState({ disabled: false });
+            }}
+          /> : null}
+        {this.state.showFullRecipe ?
+          <BottomSheet
+            ref={this.sheetRef}
+            snapPoints={[recipeHeight, 0]}
+            borderRadius={50}
+            renderContent={this.renderContent}
+            initialSnap={1}
+            enabledBottomInitialAnimation={true}
+            onCloseStart={() => this.setState({ disabled: false })}
+            onCloseEnd={() => this.setState({ showFullRecipe: false })}
+            onOpenStart={() => this.setState({ disabled: true })}
+            onOpenEnd={() => this.setState({ disabled: true })}
+            // callbackThreshold={0.15}
+            renderHeader={() => (<View style={{ width: 80, justifyContent: 'center', alignSelf: 'center', height: 6, borderRadius: 10, backgroundColor: '#7a7a7a', marginBottom: 5 }}></View>)}
+          /> : null}
         <StatusBar barStyle={Platform.OS === 'android' ? 'light-content' : 'dark-content'} />
         <View style={styles.container}>
           {showSearch ? <View style={[styles.searchBar, styles.row]}>
@@ -314,6 +318,15 @@ export default class Recipes extends React.Component {
 }
 
 const styles = StyleSheet.create({
+  disabledView: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    right: 0,
+    left: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    zIndex: 10,
+  },
   container: {
     backgroundColor: '#f2f2f2',
     marginBottom: 0,
