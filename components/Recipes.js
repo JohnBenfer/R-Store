@@ -70,7 +70,7 @@ export default class Recipes extends React.Component {
       r.forEach((recipe) => {
         recipe.favorite ? favoriteRecipes.push(recipe) : null;
       });
-      this.setState({ recipes: r, displayRecipes: r, favoriteRecipes: favoriteRecipes });
+      this.setState({ recipes: r, displayRecipes: this.sortRecipes(r, favoriteRecipes), favoriteRecipes: favoriteRecipes });
       // this.assignIds(r);
     });
   }
@@ -158,11 +158,23 @@ export default class Recipes extends React.Component {
 
   addRecipeModal = (recipe) => {
     let { recipes, displayRecipes } = this.state;
+    console.log(this.state.displayRecipes.length);
     recipes.unshift(recipe);
     // displayRecipes.push(recipe);
     setTimeout(() => this.flatListRef.current.scrollToIndex({ index: 0 }), 150);
-    this.setState({ recipes: recipes });
+    this.setState({ recipes: recipes, displayRecipes: this.sortRecipes(recipes, this.state.favoriteRecipes) });
+    console.log(this.state.displayRecipes.length);
     this.createRecipeRef.current.snapTo(1);
+  }
+
+  sortRecipes = (recipes, favoriteRecipes) => {
+    let unPinnedRecipes = [];
+    recipes.forEach((r) => {
+      if (!favoriteRecipes.includes(r)) {
+        unPinnedRecipes.push(r);
+      }
+    });
+    return favoriteRecipes.concat(unPinnedRecipes);
   }
 
   createRecipe = () => {
@@ -267,7 +279,8 @@ export default class Recipes extends React.Component {
       displayRecipes.find((r) => r.id === recipe.id).favorite = true;
     }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    this.setState({ recipes: recipes, displayRecipes: displayRecipes, favoriteRecipes: favoriteRecipes });
+    LayoutAnimation.linear();
+    this.setState({ recipes: recipes, displayRecipes: this.sortRecipes(displayRecipes, favoriteRecipes), favoriteRecipes: favoriteRecipes });
     const newRecipes = {
       recipes: recipes
     };
