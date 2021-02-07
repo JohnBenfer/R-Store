@@ -1,12 +1,10 @@
 import React from 'react';
 import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Animated, Dimensions, Pressable, Image, ImageBackground } from 'react-native';
-import { Input, Button, Overlay, Text } from 'react-native-elements';
+import { Input, Button, Overlay, Text, Icon } from 'react-native-elements';
 import { LinearGradient } from 'expo-linear-gradient';
+import { DEFAULT_CARD_HEIGHT, CARD_HEIGHT, MARGIN } from '../Constants';
 
-const DEFAULT_CARD_HEIGHT = 400;
-const MARGIN = 12;
 const BOTTOM_TABS = 90;
-const CARD_HEIGHT = DEFAULT_CARD_HEIGHT + MARGIN * 2;
 const { height: wHeight, width } = Dimensions.get("window");
 const height = wHeight - 64;
 
@@ -27,18 +25,38 @@ const styles = StyleSheet.create({
     marginVertical: MARGIN,
     alignSelf: "center",
     overflow: 'hidden',
+    width: width * 0.9,
   },
   recipeTitle: {
     textAlign: 'center',
     padding: 5,
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
+    fontFamily: 'Avenir',
+    color: '#fff',
+    zIndex: 1000,
+    // position: 'absolute',
+    // top: 0,
+    alignSelf: 'center',
+    marginTop: 5,
+    paddingHorizontal: 48,
+  },
+  titleNoPicture: {
+    textAlign: 'center',
+    padding: 5,
+    fontSize: 24,
+    fontWeight: 'bold',
+    fontFamily: 'Avenir',
+    color: '#000',
+    zIndex: 100,
+    marginTop: 5,
   },
   recipeDescription: {
     paddingHorizontal: 5
   },
   ingredients: {
-    paddingHorizontal: 5,
+    paddingHorizontal: 20,
+    marginTop: 10,
   }
 
 })
@@ -62,7 +80,7 @@ const RecipeCard = (props) => {
     ),
     position.interpolate({
       inputRange: [isDisappearing, isTop, isBottom, isAppearing],
-      outputRange: [-CARD_HEIGHT/4, 20, 0, -30],
+      outputRange: [-CARD_HEIGHT / 4, 20, 0, -30],
       extrapolate: "clamp",
     })
   );
@@ -80,12 +98,12 @@ const RecipeCard = (props) => {
   });
 
   const opacity = position.interpolate({
-    inputRange: [isDisappearing+100, isTop, isBottom, isAppearing],
+    inputRange: [isDisappearing + 100, isTop, isBottom, isAppearing],
     outputRange: [0.5, 1, 1, 0.7],
   });
 
   const renderIngredients = () => {
-    return recipe.ingredients?.map((i, index) => <Text style={styles.ingredients} key={index}>{i.title}</Text>);
+    return recipe.ingredients?.map((i, index) => <Text style={{ marginBottom: 5, color: '#636363' }} key={index}>{i.title}</Text>);
   }
 
   return (
@@ -93,21 +111,48 @@ const RecipeCard = (props) => {
       style={[styles.card, { opacity, transform: [{ translateY }, { scaleX }, { scaleY }] }]}
       key={index}
     >
-      <Pressable onPress={() => props.handleRecipePress(recipe, index)}>
-        <View style={[styles.recipe, { height: DEFAULT_CARD_HEIGHT, backgroundColor: '#fff' }]}>
-          <Text style={styles.recipeTitle}>{props.recipe.title}</Text>
-          {/* {recipe.images.length > 0 && (
-            <ImageBackground source={{ uri: recipe.images[0] }} style={{ width: '100%', height: DEFAULT_CARD_HEIGHT-28, marginTop: -13, zIndex: -1}} >
-              <LinearGradient colors={['#e6e6e6', '#FFFFFF00']} style={{ position: 'absolute', top: 0, height: 60, width: '100%' }} />
-              <LinearGradient colors={['#FFFFFF00', '#e6e6e6']} style={{ position: 'absolute', bottom: 0, height: 60, width: '100%' }} />
-            </ImageBackground>
-          )} */}
-          {recipe.images.length > 0 && (
-            <Image source={{ uri: recipe.images[0] }} style={{ width: '100%', height: DEFAULT_CARD_HEIGHT-37, borderBottomRightRadius: 7, borderBottomLeftRadius: 7}}/>
+      <Pressable onPress={() => props.handleRecipePress(recipe, index)} onLongPress={() => props.handleRecipeLongPress(recipe, index)} delayLongPress={250}>
+
+        {recipe.images.length > 0 ? (
+          <ImageBackground source={{ uri: recipe.images[0] }} style={{ width: '100%', height: DEFAULT_CARD_HEIGHT, overflow: 'hidden' }} imageStyle={{ borderRadius: 30, overflow: 'hidden' }} >
+            <View style={{ overflow: 'hidden', borderRadius: 30, }}>
+              <LinearGradient colors={['#000', 'transparent']} style={{ overflow: 'hidden', height: 110, width: '100%', opacity: 0.8, borderTopLeftRadius: 30, borderTopRightRadius: 30 }} >
+                <View style={{flexDirection: 'row', alignSelf: 'center', width: '100%', alignItems: 'center', justifyContent: 'center', opacity: 1, zIndex: 1000}}>
+                  <Text style={styles.recipeTitle}>{props.recipe.title}</Text>
+                  <View style={{ position: 'absolute', right: 0, marginRight: 15, zIndex: 1000, opacity: 1, top: 0, marginTop: 15 }}>
+                    <Pressable onPress={() => props.handleRecipeFavoritePress(recipe, index)} hitSlop={5}>
+                      {!props.favorite ? <Icon name='hearto' type='antdesign' size={20} color='#fff' /> : <Icon name='heart' type='antdesign' size={20} color='red' />}
+                    </Pressable>
+                  </View>
+                </View>
+              </LinearGradient>
+            </View>
+            <View style={{ overflow: 'hidden', borderRadius: 30, marginTop: DEFAULT_CARD_HEIGHT - 110 - 130 }}>
+              <LinearGradient colors={['transparent', '#000']} style={{ overflow: 'hidden', height: 130, width: '100%', opacity: 0.7, borderTopLeftRadius: 30, borderTopRightRadius: 30 }} />
+              <Text style={{ position: 'absolute', bottom: 0, marginBottom: 10, paddingHorizontal: 10, color: '#ebebeb', alignSelf: 'center' }}>{props.recipe.description}</Text>
+            </View>
+          </ImageBackground>
+        ) : (
+            <View style={{ width: '100%', height: DEFAULT_CARD_HEIGHT, overflow: 'hidden', borderWidth: 1, borderRadius: 30, backgroundColor: '#fff', borderColor: '#ccc' }}>
+              <View style={{ flexDirection: 'row', alignSelf: 'center', width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={[styles.titleNoPicture, { color: '#000', paddingHorizontal: 48 }]}>{props.recipe.title}</Text>
+                <View style={{ position: 'absolute', right: 0, marginRight: 15, top: 0, marginTop: 15 }}>
+                  <Pressable onPress={() => props.handleRecipeFavoritePress(recipe, index)} hitSlop={5}>
+                    {!props.favorite ? <Icon name='hearto' type='antdesign' size={20} /> : <Icon name='heart' type='antdesign' size={20} color='red' />}
+                  </Pressable>
+                </View>
+              </View>
+              <View style={{ borderTopWidth: 1, borderBottomWidth: 1, marginVertical: 7, paddingVertical: 10, marginHorizontal: 15, borderColor: '#ccc' }}>
+                <Text style={{ color: '#000', alignSelf: 'flex-start', fontSize: 15, }}>{props.recipe.description}</Text>
+              </View>
+              <View style={styles.ingredients}>
+                {renderIngredients()}
+              </View>
+            </View>
           )}
-          <Text style={styles.recipeDescription}>{props.recipe.description}</Text>
-          {renderIngredients()}
-        </View>
+        {/* {recipe.images.length > 0 && (
+            <Image source={{ uri: recipe.images[0] }} style={{ width: '100%', height: DEFAULT_CARD_HEIGHT-37, borderBottomRightRadius: 7, borderBottomLeftRadius: 7}}/>
+          )} */}
       </Pressable>
     </Animated.View>
   );

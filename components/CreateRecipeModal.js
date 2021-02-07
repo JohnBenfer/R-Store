@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'react';
 import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Image, ImageBackground, LayoutAnimation, TextInput } from 'react-native';
 import { Input, Button, Overlay, Text, Icon } from 'react-native-elements';
 import * as ImagePicker from 'expo-image-picker';
@@ -8,6 +9,10 @@ import * as FileSystem from 'expo-file-system';
 import { RecipesPath } from '../Constants';
 import { ScrollView } from 'react-native';
 
+const propTypes = {
+  addRecipe: PropTypes.func,
+  cancelPress: PropTypes.func,
+}
 export default class Inventory extends React.Component {
   ingredientRef = React.createRef();
   photoListRef = React.createRef();
@@ -44,8 +49,8 @@ export default class Inventory extends React.Component {
       images.push(result.uri);
       LayoutAnimation.easeInEaseOut();
       this.setState({ images: images });
-      setTimeout(() => this.photoListRef.current.scrollToIndex({ index: images.length - 1 }), 10);
-
+      setTimeout(() => this.photoListRef.current.scrollToIndex({index: images.length-1}), 10);
+      
     }
   }
 
@@ -65,7 +70,7 @@ export default class Inventory extends React.Component {
       images.push(result.uri);
       LayoutAnimation.easeInEaseOut();
       this.setState({ images: images });
-      setTimeout(() => this.photoListRef.current.scrollToIndex({ index: images.length - 1 }), 1);
+      setTimeout(() => this.photoListRef.current.scrollToIndex({index: images.length-1}), 1);
     }
   }
 
@@ -84,7 +89,6 @@ export default class Inventory extends React.Component {
       ingredients: ingredients,
       directions: directions,
       images: images,
-      favorite: false,
     }
     const newRecipes = {
       recipes: [
@@ -95,8 +99,7 @@ export default class Inventory extends React.Component {
     await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify(newRecipes));
     FileSystem.readAsStringAsync(RecipesPath).then((res) => {
     });
-    this.props.route.params.addRecipe(newRecipe);
-    this.props.navigation.goBack();
+    this.props.addRecipe(newRecipe);
   }
 
   addIngredient = () => {
@@ -139,11 +142,11 @@ export default class Inventory extends React.Component {
     const { images, title, ingredients, directions, description } = this.state;
     return (
       <SafeAreaView>
-        <View>
-          <View style={[styles.row, { marginBottom: 15 }]}>
+        <View style={{backgroundColor: '#fff'}}>
+          <View style={[styles.row, {marginBottom: 15, marginTop: 10}]}>
             <View style={styles.cancelButtonContainer}>
               <Button
-                onPress={() => this.props.navigation.goBack()}
+                onPress={() => this.props.cancelPress()}
                 title="Cancel"
                 type="clear"
                 titleStyle={styles.cancelButtonTitle}
@@ -305,7 +308,7 @@ export default class Inventory extends React.Component {
                   </View>}
               </View>
             </View>
-            <View style={{ height: 100 }}>
+            <View style={{ height: 300 }}>
 
             </View>
           </ScrollView>

@@ -1,28 +1,28 @@
 import React, { createRef } from 'react';
 import { StyleSheet, View, SafeAreaView, Dimensions, FlatList, StatusBar, Platform, Animated, TextInput, TouchableHighlight, LayoutAnimation, Pressable } from 'react-native';
 import { Input, Button, Overlay, Text, Icon } from 'react-native-elements';
-import { ScrollView, } from 'react-native-gesture-handler';
-import Carousel from 'react-native-snap-carousel';
+import * as Haptics from 'expo-haptics';
 import RecipeCard from './RecipeCard';
+import CreateRecipeModal from './CreateRecipeModal';
 import Recipe from './Recipe';
 import * as FileSystem from 'expo-file-system';
 import { RecipesPath } from '../Constants';
 import BottomSheet from 'reanimated-bottom-sheet';
 import Constants from 'expo-constants';
+import { DEFAULT_CARD_HEIGHT, CARD_HEIGHT, MARGIN } from '../Constants';
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
-const DEFAULT_CARD_HEIGHT = 400;
-const MARGIN = 12;
 const BOTTOM_TABS = 90;
-const CARD_HEIGHT = DEFAULT_CARD_HEIGHT + MARGIN * 2;
 let oldY = 0;
-const recipeHeight = Dimensions.get("window").height - Constants.statusBarHeight - 140;
+const recipeHeight = Dimensions.get("window").height - Constants.statusBarHeight - 130;
 
 export default class Recipes extends React.Component {
   y = new Animated.Value(0);
   flatListRef = createRef();
   searchRef = createRef();
   sheetRef = createRef();
+  createRecipeRef = createRef();
+
   constructor(props) {
     super(props);
     this.state = {
@@ -33,6 +33,8 @@ export default class Recipes extends React.Component {
       searchText: '',
       displayRecipes: [],
       showFullRecipe: false,
+      showCreateRecipe: false,
+      favoriteRecipes: [],
     };
 
   }
@@ -43,14 +45,14 @@ export default class Recipes extends React.Component {
     // prevents going back to signup page
     this.props.navigation.setOptions({
       headerRight: () => (
-        <Pressable style={{ borderWidth: 2, borderColor: '#636363', borderRadius: 6, marginHorizontal: 7, }} onPress={this.createRecipe} hitSlop={10}>
+        <Pressable style={{ borderWidth: 2, borderColor: '#636363', borderRadius: 6, marginHorizontal: 7, }} onPress={this.createRecipeModal} hitSlop={10}>
           <Icon
             style={{ alignSelf: 'center' }}
             name="md-add"
             type="ionicon"
             color='#919191'
             size={20}
-            onPress={this.createRecipe}
+            onPress={this.createRecipeModal}
           />
         </Pressable>
       ),
@@ -62,10 +64,15 @@ export default class Recipes extends React.Component {
   }
 
   getRecipes = () => {
+    let favoriteRecipes = [];
     FileSystem.readAsStringAsync(RecipesPath).then((res) => {
       let r = JSON.parse(res).recipes.reverse();
-      this.setState({ recipes: r, displayRecipes: r });
-    })
+      r.forEach((recipe) => {
+        recipe.favorite ? favoriteRecipes.push(recipe) : null;
+      });
+      this.setState({ recipes: r, displayRecipes: r, favoriteRecipes: favoriteRecipes });
+      // this.assignIds(r);
+    });
   }
 
   loadMockRecipes() {
@@ -119,6 +126,28 @@ export default class Recipes extends React.Component {
     );
   }
 
+  assignIds = async (recipes) => {
+    let newRecipes = this.state.recipes;
+    recipes.forEach((r) => {
+      if (!r.id) {
+        newRecipes[recipes.indexOf(r)].id = this.generateId(recipes);
+      }
+    });
+    console.log(newRecipes);
+    await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify({recipes: newRecipes}));
+  }
+
+  generateId = (recipes) => {
+    // Math.random should be unique because of its seeding algorithm.
+    // Convert it to base 36 (numbers + letters), and grab the first 9 characters
+    // after the decimal.
+    const id = '_' + Math.random().toString(36).substr(2, 9);
+    this.state.recipes.forEach(r => {
+      r.id === id ? this.generateId() : null;
+    });
+    return id;
+  }
+
   addRecipe = (recipe) => {
     let { recipes, displayRecipes } = this.state;
     recipes.unshift(recipe);
@@ -127,8 +156,26 @@ export default class Recipes extends React.Component {
     this.setState({ recipes: recipes });
   }
 
+  addRecipeModal = (recipe) => {
+    let { recipes, displayRecipes } = this.state;
+    recipes.unshift(recipe);
+    // displayRecipes.push(recipe);
+    setTimeout(() => this.flatListRef.current.scrollToIndex({ index: 0 }), 150);
+    this.setState({ recipes: recipes });
+    this.createRecipeRef.current.snapTo(1);
+  }
+
   createRecipe = () => {
     this.props.navigation.push("CreateRecipe", { addRecipe: this.addRecipe });
+  }
+
+  createRecipeModal = () => {
+    setTimeout(() => this.createRecipeRef.current.snapTo(0), 50);
+    this.setState({ showCreateRecipe: true });
+  }
+
+  cancelPress = () => {
+    this.createRecipeRef.current.snapTo(1);
   }
 
   searchPress = () => {
@@ -183,7 +230,8 @@ export default class Recipes extends React.Component {
   handleRecipePress = (recipe, index) => {
     this.state.selectedRecipe !== recipe ? this.setState({ selectedRecipe: recipe }) : null;
     this.flatListRef.current.scrollToIndex({
-      index: index
+      index: index,
+      viewPosition: 0.5
     });
     // if (index + 1 === this.state.selectedIndex || index + 1 === this.state.displayRecipes.length) {
     // this.props.navigation.push("Recipe", { recipe: recipe });
@@ -191,6 +239,39 @@ export default class Recipes extends React.Component {
     this.setState({ showFullRecipe: true });
 
     // }
+  }
+
+  handleRecipeLongPress = (recipe, index) => {
+    console.log('long press!');
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }
+
+  handleRecipeFavoritePress = async (recipe, index) => {
+    let {favoriteRecipes, displayRecipes} = this.state;
+    let recipes;
+    let newRecipe = recipe;
+    await FileSystem.readAsStringAsync(RecipesPath).then((res) => {
+      recipes = JSON.parse(res).recipes;
+    }).catch(() => {
+      console.log('error reading recipes file');
+    });
+    if (this.state.favoriteRecipes.includes(recipe)) {
+      // unfavorite
+      favoriteRecipes.splice(favoriteRecipes.indexOf(recipe), 1);
+      recipes.find((r) => r.id === recipe.id).favorite = false;
+      displayRecipes.find((r) => r.id === recipe.id).favorite = false;
+    } else {
+      // favorite
+      favoriteRecipes.push(recipe);
+      recipes.find((r) => r.id === recipe.id).favorite = true;
+      displayRecipes.find((r) => r.id === recipe.id).favorite = true;
+    }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    this.setState({ recipes: recipes, displayRecipes: displayRecipes, favoriteRecipes: favoriteRecipes });
+    const newRecipes = {
+      recipes: recipes
+    };
+    await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify(newRecipes));
   }
 
   renderContent = () => {
@@ -205,6 +286,10 @@ export default class Recipes extends React.Component {
       >
         <Recipe recipe={r} height={recipeHeight} />
       </View>);
+  }
+
+  renderCreateRecipe = () => {
+    return <CreateRecipeModal addRecipe={this.addRecipeModal} cancelPress={this.cancelPress} generateId={this.generateId}/>
   }
 
   render() {
@@ -238,7 +323,8 @@ export default class Recipes extends React.Component {
           <Pressable
             style={styles.disabledView}
             onPress={() => {
-              this.sheetRef.current.snapTo(1);
+              this.sheetRef?.current?.snapTo(1);
+              this.createRecipeRef?.current?.snapTo(1);
               this.setState({ disabled: false });
             }}
           /> : null}
@@ -246,12 +332,27 @@ export default class Recipes extends React.Component {
           <BottomSheet
             ref={this.sheetRef}
             snapPoints={[recipeHeight, 0]}
-            borderRadius={50}
+            borderRadius={20}
             renderContent={this.renderContent}
             initialSnap={1}
             enabledBottomInitialAnimation={true}
             onCloseStart={() => this.setState({ disabled: false })}
             onCloseEnd={() => this.setState({ showFullRecipe: false })}
+            onOpenStart={() => this.setState({ disabled: true })}
+            onOpenEnd={() => this.setState({ disabled: true })}
+            // callbackThreshold={0.15}
+            renderHeader={() => (<View style={{ width: 80, justifyContent: 'center', alignSelf: 'center', height: 6, borderRadius: 10, backgroundColor: '#7a7a7a', marginBottom: 5 }}></View>)}
+          /> : null}
+        {this.state.showCreateRecipe ?
+          <BottomSheet
+            ref={this.createRecipeRef}
+            snapPoints={[recipeHeight, 0]}
+            borderRadius={20}
+            renderContent={this.renderCreateRecipe}
+            initialSnap={1}
+            enabledBottomInitialAnimation={true}
+            onCloseStart={() => this.setState({ disabled: false })}
+            onCloseEnd={() => this.setState({ showCreateRecipe: false, disabled: false })}
             onOpenStart={() => this.setState({ disabled: true })}
             onOpenEnd={() => this.setState({ disabled: true })}
             // callbackThreshold={0.15}
@@ -291,7 +392,17 @@ export default class Recipes extends React.Component {
           <AnimatedFlatList
             data={displayRecipes}
             renderItem={({ index, item }) => (
-              <RecipeCard index={index} y={this.y} recipe={item} selectedIndex={this.state.selectedIndex} selected={item.id === this.state.selectedRecipe?.id} handleRecipePress={this.handleRecipePress} />
+              <RecipeCard 
+                index={index} 
+                y={this.y} 
+                recipe={item} 
+                selectedIndex={this.state.selectedIndex} 
+                selected={item.id === this.state.selectedRecipe?.id} 
+                handleRecipePress={this.handleRecipePress} 
+                handleRecipeLongPress={this.handleRecipeLongPress}
+                handleRecipeFavoritePress={this.handleRecipeFavoritePress}
+                favorite={item.favorite}
+              />
             )}
             bounces={true}
             keyExtractor={(item, index) => index.toString()}
