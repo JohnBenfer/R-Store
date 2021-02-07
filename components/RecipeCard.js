@@ -120,7 +120,7 @@ const RecipeCard = (props) => {
                 <View style={{flexDirection: 'row', alignSelf: 'center', width: '100%', alignItems: 'center', justifyContent: 'center', opacity: 1, zIndex: 1000}}>
                   <Text style={styles.recipeTitle}>{props.recipe.title}</Text>
                   <View style={{ position: 'absolute', right: 0, marginRight: 15, zIndex: 1000, opacity: 1, top: 0, marginTop: 15 }}>
-                    <Pressable onPress={() => props.handleRecipeFavoritePress(recipe, index)} hitSlop={5}>
+                    <Pressable onPress={() => props.handleRecipeFavoritePress(recipe, index)} hitSlop={10}>
                       {!props.favorite ? <Icon name='hearto' type='antdesign' size={20} color='#fff' /> : <Icon name='heart' type='antdesign' size={20} color='red' />}
                     </Pressable>
                   </View>
@@ -137,7 +137,7 @@ const RecipeCard = (props) => {
               <View style={{ flexDirection: 'row', alignSelf: 'center', width: '100%', alignItems: 'center', justifyContent: 'center' }}>
                 <Text style={[styles.titleNoPicture, { color: '#000', paddingHorizontal: 48 }]}>{props.recipe.title}</Text>
                 <View style={{ position: 'absolute', right: 0, marginRight: 15, top: 0, marginTop: 15 }}>
-                  <Pressable onPress={() => props.handleRecipeFavoritePress(recipe, index)} hitSlop={5}>
+                  <Pressable onPress={() => props.handleRecipeFavoritePress(recipe, index)} hitSlop={10}>
                     {!props.favorite ? <Icon name='hearto' type='antdesign' size={20} /> : <Icon name='heart' type='antdesign' size={20} color='red' />}
                   </Pressable>
                 </View>

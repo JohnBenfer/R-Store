@@ -280,7 +280,12 @@ export default class Recipes extends React.Component {
     }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     LayoutAnimation.linear();
-    this.setState({ recipes: recipes, displayRecipes: this.sortRecipes(displayRecipes, favoriteRecipes), favoriteRecipes: favoriteRecipes });
+    displayRecipes = this.sortRecipes(displayRecipes, favoriteRecipes);
+    this.flatListRef.current.scrollToIndex({
+      index: displayRecipes.indexOf(displayRecipes.find((r) => r.id === recipe.id)),
+      viewPosition: 0.5
+    });
+    this.setState({ recipes: recipes, displayRecipes: displayRecipes, favoriteRecipes: favoriteRecipes });
     const newRecipes = {
       recipes: recipes
     };
