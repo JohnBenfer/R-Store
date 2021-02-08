@@ -107,25 +107,16 @@ export default class Inventory extends React.Component {
     return (
       <View style={{ height: this.props.height, paddingBottom: 15 }}>
 
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>
-            {recipe.title}
-          </Text>
-        </View>
-        <ScrollView style={{ width: Dimensions.get("window").width, marginLeft: -16 }}>
-          <Text style={{ marginVertical: 10, alignSelf: 'center', textAlign: 'center' }}>
-            {recipe.description}
-          </Text>
 
-
+        <ScrollView style={{ width: Dimensions.get("window").width, marginLeft: -16, marginTop: -17 }}>
           {recipe.images.length > 0 ? <FlatList
             data={recipe.images}
             horizontal
             renderItem={(image, index) => {
               return (
-                <View style={{ overflow: 'visible', paddingVertical: 5 }}>
-                  <ImageBackground source={{ uri: image.item }} style={{ width: 250, height: 250, marginHorizontal: 5, overflow: 'visible' }}>
-                    <LinearGradient colors={['#000000', 'transparent']} style={{ position: 'absolute', top: 0, height: 100, width: '100%', opacity: 0.8 }} />
+                <View style={{ overflow: 'visible', paddingVertical: 0 }}>
+                  <ImageBackground source={{ uri: image.item }} style={{ width: Dimensions.get("window").width, height: 400, marginHorizontal: 0, overflow: 'visible' }}>
+                    <LinearGradient colors={['transparent', '#000000']} style={{ position: 'absolute', bottom: 0, height: 100, width: '100%', opacity: 0.8 }} />
                   </ImageBackground>
                 </View>
               );
@@ -133,11 +124,19 @@ export default class Inventory extends React.Component {
             keyExtractor={(image, index) => index.toString()}
             contentContainerStyle={{ paddingHorizontal: 0 }}
             snapToAlignment={"center"}
-            snapToInterval={250 + (5 * 2)}
+            snapToInterval={Dimensions.get("window").width + (0 * 2)}
             decelerationRate={0.993}
             showsHorizontalScrollIndicator={false}
             ref={this.photoListRef}
           /> : null}
+          <View style={styles.titleContainer}>
+            <Text style={[styles.title, {marginTop: recipe.title.length > 30 && recipe.images.length > 0 ? -78 : recipe.images.length > 0 ? -50 : 15, color: recipe.images.length > 0 ? 'white' : '#000'}]}>
+              {recipe.title}
+            </Text>
+          </View>
+          <Text style={{ margin: 15, alignSelf: 'center', textAlign: 'center' }}>
+            {recipe.description}
+          </Text>
           <Text style={[styles.subtitle, { marginBottom: 7 }]}>
             Ingredients
           </Text>
@@ -162,12 +161,8 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     textAlign: 'center',
     fontWeight: 'bold',
-  },
-  titleContainer: {
-    minHeight: 50,
-    borderBottomWidth: 1,
-    width: Dimensions.get("window").width,
-    marginLeft: -16,
+    marginTop: -60,
+    color: '#fff',
   },
   subtitle: {
     paddingHorizontal: 14,

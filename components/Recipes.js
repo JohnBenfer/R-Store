@@ -349,7 +349,7 @@ export default class Recipes extends React.Component {
         {this.state.showFullRecipe ?
           <BottomSheet
             ref={this.sheetRef}
-            snapPoints={[recipeHeight, 0]}
+            snapPoints={[recipeHeight - 0, 0]}
             borderRadius={20}
             renderContent={this.renderContent}
             initialSnap={1}
@@ -359,7 +359,7 @@ export default class Recipes extends React.Component {
             onOpenStart={() => this.setState({ disabled: true })}
             onOpenEnd={() => this.setState({ disabled: true })}
             // callbackThreshold={0.15}
-            renderHeader={() => (<View style={{ width: 80, justifyContent: 'center', alignSelf: 'center', height: 6, borderRadius: 10, backgroundColor: '#7a7a7a', marginBottom: 5 }}></View>)}
+            renderHeader={() => (<View style={{height: 40, alignItems: 'flex-end', justifyContent: 'flex-end'}}><View style={{ width: 80, justifyContent: 'flex-end', alignSelf: 'center', height: 6, borderRadius: 10, backgroundColor: '#000', marginBottom: 5 }}></View></View>)}
           /> : null}
         {this.state.showCreateRecipe ?
           <BottomSheet
@@ -374,7 +374,7 @@ export default class Recipes extends React.Component {
             onOpenStart={() => this.setState({ disabled: true })}
             onOpenEnd={() => this.setState({ disabled: true })}
             // callbackThreshold={0.15}
-            renderHeader={() => (<View style={{ width: 80, justifyContent: 'center', alignSelf: 'center', height: 6, borderRadius: 10, backgroundColor: '#7a7a7a', marginBottom: 5 }}></View>)}
+            renderHeader={() => (<View style={{ width: 80, justifyContent: 'center', alignSelf: 'center', height: 6, borderRadius: 10, backgroundColor: '#000', marginBottom: 5 }}></View>)}
           /> : null}
         <StatusBar barStyle={Platform.OS === 'android' ? 'light-content' : 'dark-content'} />
         <View style={styles.container}>
@@ -453,7 +453,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     right: 0,
     left: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    // backgroundColor: 'rgba(0, 0, 0, 0.2)',
     zIndex: 10,
   },
   container: {
