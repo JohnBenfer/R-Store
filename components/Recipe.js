@@ -129,10 +129,18 @@ export default class Inventory extends React.Component {
             showsHorizontalScrollIndicator={false}
             ref={this.photoListRef}
           /> : null}
-          <View style={styles.titleContainer}>
-            <Text style={[styles.title, {marginTop: recipe.title.length > 30 && recipe.images.length > 0 ? -78 : recipe.images.length > 0 ? -50 : 15, color: recipe.images.length > 0 ? 'white' : '#000'}]}>
+          <View style={[{ flexDirection: 'row', marginTop: recipe.title.length > 30 && recipe.images.length > 0 ? -80 : recipe.images.length > 0 ? -50 : 15, paddingHorizontal: 10, paddingRight: 70 }]}>
+            <Text style={[styles.title, { color: recipe.images.length > 0 ? 'white' : '#000' }]}>
               {recipe.title}
             </Text>
+            <View style={{position: 'absolute', right: 0, bottom: 0, marginBottom: -5}}>
+              <Button
+                onPress={() => this.props.editRecipe(recipe)}
+                title="edit"
+                type="clear"
+                titleStyle={{}}
+                buttonStyle={{ backgroundColor: 'transparent', }} />
+            </View>
           </View>
           <Text style={{ margin: 15, alignSelf: 'center', textAlign: 'center' }}>
             {recipe.description}
@@ -159,9 +167,8 @@ const styles = StyleSheet.create({
     fontSize: 30,
     color: 'black',
     alignSelf: 'center',
-    textAlign: 'center',
+    // textAlign: 'center',
     fontWeight: 'bold',
-    marginTop: -60,
     color: '#fff',
   },
   subtitle: {

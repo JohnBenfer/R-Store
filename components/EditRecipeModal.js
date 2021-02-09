@@ -9,22 +9,21 @@ import * as FileSystem from 'expo-file-system';
 import { RecipesPath } from '../Constants';
 import { ScrollView } from 'react-native';
 
-const propTypes = {
-  addRecipe: PropTypes.func,
-  cancelPress: PropTypes.func,
-}
-export default class CreateRecipeModal extends React.Component {
+export default class EditRecipeModal extends React.Component {
   ingredientRef = React.createRef();
   photoListRef = React.createRef();
 
   constructor(props) {
     super(props);
+    const ingredients = JSON.parse(JSON.stringify(props.recipe.ingredients));
+    const directions = JSON.parse(JSON.stringify(props.recipe.directions));
+    const images = JSON.parse(JSON.stringify(props.recipe.images));
     this.state = {
-      images: [],
-      title: '',
-      description: '',
-      ingredients: [{ title: '' }, { title: '' }],
-      directions: ['', ''],
+      images: images,
+      title: props.recipe.title,
+      description: props.recipe.description,
+      ingredients: ingredients,
+      directions: directions,
     };
   }
 
@@ -49,8 +48,8 @@ export default class CreateRecipeModal extends React.Component {
       images.push(result.uri);
       LayoutAnimation.easeInEaseOut();
       this.setState({ images: images });
-      setTimeout(() => this.photoListRef.current.scrollToIndex({index: images.length-1}), 10);
-      
+      setTimeout(() => this.photoListRef.current.scrollToIndex({ index: images.length - 1 }), 10);
+
     }
   }
 
@@ -70,36 +69,21 @@ export default class CreateRecipeModal extends React.Component {
       images.push(result.uri);
       LayoutAnimation.easeInEaseOut();
       this.setState({ images: images });
-      setTimeout(() => this.photoListRef.current.scrollToIndex({index: images.length-1}), 1);
+      setTimeout(() => this.photoListRef.current.scrollToIndex({ index: images.length - 1 }), 1);
     }
   }
 
   saveRecipe = async () => {
     const { title, description, ingredients, directions, images } = this.state;
-    let recipes;
-    await FileSystem.readAsStringAsync(RecipesPath).then((res) => {
-      recipes = JSON.parse(res);
-    }).catch(() => {
-      console.log('error reading recipes file');
-    });
     const newRecipe = {
-      id: this.props.generateId(),
+      id: this.props.recipe.id,
       title: title,
       description: description,
       ingredients: ingredients,
       directions: directions,
       images: images,
     }
-    const newRecipes = {
-      recipes: [
-        ...recipes.recipes,
-        newRecipe
-      ]
-    };
-    await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify(newRecipes));
-    FileSystem.readAsStringAsync(RecipesPath).then((res) => {
-    });
-    this.props.addRecipe(newRecipe);
+    this.props.saveEditRecipe(newRecipe);
   }
 
   addIngredient = () => {
@@ -142,11 +126,11 @@ export default class CreateRecipeModal extends React.Component {
     const { images, title, ingredients, directions, description } = this.state;
     return (
       <SafeAreaView>
-        <View style={{backgroundColor: '#fff'}}>
-          <View style={[styles.row, {marginBottom: 15, marginTop: 10}]}>
+        <View style={{ backgroundColor: '#fff' }}>
+          <View style={[styles.row, { marginBottom: 15, marginTop: 10 }]}>
             <View style={styles.cancelButtonContainer}>
               <Button
-                onPress={() => this.props.cancelPress()}
+                onPress={() => this.props.cancelEditPress()}
                 title="Cancel"
                 type="clear"
                 titleStyle={styles.cancelButtonTitle}
@@ -172,6 +156,7 @@ export default class CreateRecipeModal extends React.Component {
                 style={[styles.textInput, { width: '100%', fontSize: 16 }]}
                 autoFocus={true}
                 onChangeText={(text) => this.setState({ title: text })}
+                value={title}
               />
             </View>
             <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
@@ -181,12 +166,13 @@ export default class CreateRecipeModal extends React.Component {
               <TextInput
                 style={[styles.textInput, { width: '100%', fontSize: 14 }]}
                 onChangeText={(text) => this.setState({ description: text })}
+                value={description}
               />
             </View>
             <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
               Ingredients
           </Text>
-            {ingredients.map((ingredient, index) => (
+            {ingredients?.map((ingredient, index) => (
               <View key={index} style={[styles.row, { marginHorizontal: 15 }]}>
                 <TextInput
                   style={[styles.textInput, { width: '90%', fontSize: 14, marginBottom: 7 }]}
@@ -221,7 +207,7 @@ export default class CreateRecipeModal extends React.Component {
             <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
               Directions
           </Text>
-            {directions.map((direction, index) => (
+            {directions?.map((direction, index) => (
               <View key={index} style={[styles.row, { marginHorizontal: 15 }]}>
                 <View style={{ width: 20 }}>
                   <Text style={{ marginTop: 5 }}>
@@ -272,7 +258,7 @@ export default class CreateRecipeModal extends React.Component {
               </View>
 
               <View style={styles.photoList}>
-                {images.length > 0 ? <FlatList
+                {images?.length > 0 ? <FlatList
                   data={images}
                   horizontal
                   renderItem={(image, index) => {

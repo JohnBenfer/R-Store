@@ -4,6 +4,7 @@ import { Input, Button, Overlay, Text, Icon } from 'react-native-elements';
 import * as Haptics from 'expo-haptics';
 import RecipeCard from './RecipeCard';
 import CreateRecipeModal from './CreateRecipeModal';
+import EditRecipeModal from './EditRecipeModal';
 import Recipe from './Recipe';
 import * as FileSystem from 'expo-file-system';
 import { RecipesPath } from '../Constants';
@@ -22,6 +23,7 @@ export default class Recipes extends React.Component {
   searchRef = createRef();
   sheetRef = createRef();
   createRecipeRef = createRef();
+  editRecipeRef = createRef();
 
   constructor(props) {
     super(props);
@@ -34,6 +36,7 @@ export default class Recipes extends React.Component {
       displayRecipes: [],
       showFullRecipe: false,
       showCreateRecipe: false,
+      showEditRecipe: false,
       favoriteRecipes: [],
     };
 
@@ -70,6 +73,7 @@ export default class Recipes extends React.Component {
       r.forEach((recipe) => {
         recipe.favorite ? favoriteRecipes.push(recipe) : null;
       });
+      console.log('get recipes');
       this.setState({ recipes: r, displayRecipes: this.sortRecipes(r, favoriteRecipes), favoriteRecipes: favoriteRecipes });
       // this.assignIds(r);
     });
@@ -134,7 +138,7 @@ export default class Recipes extends React.Component {
       }
     });
     console.log(newRecipes);
-    await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify({recipes: newRecipes}));
+    await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify({ recipes: newRecipes }));
   }
 
   generateId = (recipes) => {
@@ -153,6 +157,7 @@ export default class Recipes extends React.Component {
     recipes.unshift(recipe);
     // displayRecipes.push(recipe);
     setTimeout(() => this.flatListRef.current.scrollToIndex({ index: 0 }), 150);
+    console.log('add recipe');
     this.setState({ recipes: recipes });
   }
 
@@ -162,6 +167,7 @@ export default class Recipes extends React.Component {
     recipes.unshift(recipe);
     // displayRecipes.push(recipe);
     setTimeout(() => this.flatListRef.current.scrollToIndex({ index: 0 }), 150);
+    console.log('add recipe modal');
     this.setState({ recipes: recipes, displayRecipes: this.sortRecipes(recipes, this.state.favoriteRecipes) });
     console.log(this.state.displayRecipes.length);
     this.createRecipeRef.current.snapTo(1);
@@ -197,6 +203,53 @@ export default class Recipes extends React.Component {
     }, 150);
   }
 
+  editRecipe = () => {
+    // setTimeout(() => this.sheetRef.current.snapTo(1), 10);
+    setTimeout(() => this.editRecipeRef.current.snapTo(0), 50);
+    this.setState({ showEditRecipe: true });
+  }
+
+  saveEditRecipe = async (newRecipe) => {
+    console.log('save');
+    setTimeout(() => this.editRecipeRef.current.snapTo(1), 50);
+
+    let {displayRecipes, favoriteRecipes} = this.state;
+    let recipes;
+    await FileSystem.readAsStringAsync(RecipesPath).then((res) => {
+      recipes = JSON.parse(res).recipes;
+    }).catch(() => {
+      console.log('error reading recipes file');
+    });
+    let oldRecipeIndex = recipes.indexOf(recipes.find((r) => r.id === newRecipe.id));
+    recipes[oldRecipeIndex] = newRecipe;
+    // recipes[oldRecipeIndex].title = newRecipe.title;
+    // recipes[oldRecipeIndex].description = newRecipe.description;
+    // recipes[oldRecipeIndex].ingredients = newRecipe.ingredients;
+    // recipes[oldRecipeIndex].directions = newRecipe.directions;
+    // recipes[oldRecipeIndex].images = newRecipe.images;
+
+    let oldDisplayRecipeIndex = displayRecipes.indexOf(displayRecipes.find((r) => r.id === newRecipe.id));
+    // displayRecipes[oldDisplayRecipeIndex] = newRecipe;
+    displayRecipes[oldDisplayRecipeIndex].title = newRecipe.title;
+    displayRecipes[oldDisplayRecipeIndex].description = newRecipe.description;
+    displayRecipes[oldDisplayRecipeIndex].ingredients = newRecipe.ingredients;
+    displayRecipes[oldDisplayRecipeIndex].directions = newRecipe.directions;
+    displayRecipes[oldDisplayRecipeIndex].images = newRecipe.images;
+
+    displayRecipes = this.sortRecipes(displayRecipes, favoriteRecipes);
+    console.log('save edit recipe');
+    // this.setState({ recipes: recipes, displayRecipes: displayRecipes});
+    const newRecipes = {
+      recipes: recipes
+    };
+    await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify(newRecipes));
+  }
+
+  cancelEditPress = () => {
+    setTimeout(() => this.editRecipeRef.current.snapTo(1), 50);
+    console.log('cancel');
+  }
+
   recipeSearch = (searchText) => {
     this.setState({ searchText: searchText });
     if (!searchText || searchText.length < 2) {
@@ -204,6 +257,7 @@ export default class Recipes extends React.Component {
         this.flatListRef.current.scrollToIndex({ index: 0 });
       }
       LayoutAnimation.easeInEaseOut();
+      console.log('recipe search');
       this.setState({ displayRecipes: this.state.recipes });
       return;
     }
@@ -236,6 +290,7 @@ export default class Recipes extends React.Component {
     });
     newRecipes = newRecipes.concat(newRecipes1, newRecipes2, newRecipes3);
     LayoutAnimation.easeInEaseOut();
+    console.log('recipe search bottom');
     this.setState({ displayRecipes: newRecipes });
   }
 
@@ -258,8 +313,12 @@ export default class Recipes extends React.Component {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }
 
+  deleteRecipe = (recipe) => {
+
+  }
+
   handleRecipeFavoritePress = async (recipe, index) => {
-    let {favoriteRecipes, displayRecipes} = this.state;
+    let { favoriteRecipes, displayRecipes } = this.state;
     let recipes;
     let newRecipe = recipe;
     await FileSystem.readAsStringAsync(RecipesPath).then((res) => {
@@ -285,6 +344,7 @@ export default class Recipes extends React.Component {
       index: displayRecipes.indexOf(displayRecipes.find((r) => r.id === recipe.id)),
       viewPosition: 0.5
     });
+    console.log('in favorite press');
     this.setState({ recipes: recipes, displayRecipes: displayRecipes, favoriteRecipes: favoriteRecipes });
     const newRecipes = {
       recipes: recipes
@@ -302,17 +362,27 @@ export default class Recipes extends React.Component {
           height: recipeHeight,
         }}
       >
-        <Recipe recipe={r} height={recipeHeight} />
+        <Recipe recipe={r} height={recipeHeight} editRecipe={this.editRecipe} />
       </View>);
   }
 
   renderCreateRecipe = () => {
-    return <CreateRecipeModal addRecipe={this.addRecipeModal} cancelPress={this.cancelPress} generateId={this.generateId}/>
+    return <CreateRecipeModal addRecipe={this.addRecipeModal} cancelPress={this.cancelPress} generateId={this.generateId} />
+  }
+
+  renderEditRecipe = () => {
+    return <EditRecipeModal saveEditRecipe={this.saveEditRecipe} cancelEditPress={this.cancelEditPress} recipe={this.state.selectedRecipe}/>
   }
 
   render() {
     let selectedIndex = 1;
     const { showSearch, recipes, displayRecipes, showFullRecipe } = this.state;
+    // console.log('recipe');
+    // console.log(recipes[recipes.indexOf(recipes.find((r) => r.id === '_wbrzjdhfp'))]?.title);
+    // console.log(recipes[recipes.indexOf(recipes.find((r) => r.id === '_wbrzjdhfp'))]?.ingredients[0].title);
+    // console.log('display recipe');
+    // console.log(displayRecipes[displayRecipes.indexOf(displayRecipes.find((r) => r.id === '_wbrzjdhfp'))]?.title);
+    // console.log(displayRecipes[displayRecipes.indexOf(displayRecipes.find((r) => r.id === '_wbrzjdhfp'))]?.ingredients[0].title);
 
     const onScroll = Animated.event([{ nativeEvent: { contentOffset: { y: this.y } } }], {
       useNativeDriver: true,
@@ -354,12 +424,11 @@ export default class Recipes extends React.Component {
             renderContent={this.renderContent}
             initialSnap={1}
             enabledBottomInitialAnimation={true}
-            onCloseStart={() => this.setState({ disabled: false })}
-            onCloseEnd={() => this.setState({ showFullRecipe: false })}
+            onCloseStart={() => this.setState({ disabled: !this.state.showEditRecipe ? false : true })}
+            onCloseEnd={() => this.setState({ showFullRecipe: !this.state.showEditRecipe ? false : true })}
             onOpenStart={() => this.setState({ disabled: true })}
             onOpenEnd={() => this.setState({ disabled: true })}
-            // callbackThreshold={0.15}
-            renderHeader={() => (<View style={{height: 40, alignItems: 'flex-end', justifyContent: 'flex-end'}}><View style={{ width: 80, justifyContent: 'flex-end', alignSelf: 'center', height: 6, borderRadius: 10, backgroundColor: '#000', marginBottom: 5 }}></View></View>)}
+            renderHeader={() => (<View style={{ height: 40, alignItems: 'flex-end', justifyContent: 'flex-end' }}><View style={{ width: 80, justifyContent: 'flex-end', alignSelf: 'center', height: 6, borderRadius: 10, backgroundColor: '#000', marginBottom: 5 }}></View></View>)}
           /> : null}
         {this.state.showCreateRecipe ?
           <BottomSheet
@@ -369,11 +438,23 @@ export default class Recipes extends React.Component {
             renderContent={this.renderCreateRecipe}
             initialSnap={1}
             enabledBottomInitialAnimation={true}
-            onCloseStart={() => this.setState({ disabled: false })}
-            onCloseEnd={() => this.setState({ showCreateRecipe: false, disabled: false })}
+            onCloseStart={() => this.setState({ disabled: !this.state.showEditRecipe ? false : true })}
+            onCloseEnd={() => this.setState({ showCreateRecipe: false, disabled: !this.state.showEditRecipe ? false : true })}
             onOpenStart={() => this.setState({ disabled: true })}
             onOpenEnd={() => this.setState({ disabled: true })}
-            // callbackThreshold={0.15}
+            renderHeader={() => (<View style={{ width: 80, justifyContent: 'center', alignSelf: 'center', height: 6, borderRadius: 10, backgroundColor: '#000', marginBottom: 5 }}></View>)}
+          /> : null}
+        {this.state.showEditRecipe ?
+          <BottomSheet
+            ref={this.editRecipeRef}
+            snapPoints={[recipeHeight, 0]}
+            borderRadius={20}
+            renderContent={this.renderEditRecipe}
+            initialSnap={1}
+            enabledBottomInitialAnimation={true}
+            onCloseEnd={() => this.setState({ showEditRecipe: false })}
+            onOpenStart={() => this.setState({ disabled: true })}
+            onOpenEnd={() => this.setState({ disabled: true })}
             renderHeader={() => (<View style={{ width: 80, justifyContent: 'center', alignSelf: 'center', height: 6, borderRadius: 10, backgroundColor: '#000', marginBottom: 5 }}></View>)}
           /> : null}
         <StatusBar barStyle={Platform.OS === 'android' ? 'light-content' : 'dark-content'} />
@@ -399,6 +480,7 @@ export default class Recipes extends React.Component {
                     this.flatListRef.current.scrollToIndex({ index: 0 });
                   }
                   this.searchRef.current.blur();
+                  console.log('cancel search');
                   this.setState({ showSearch: false, displayRecipes: this.state.recipes, searchText: '' });
                 }}
                 type="clear"
@@ -410,13 +492,13 @@ export default class Recipes extends React.Component {
           <AnimatedFlatList
             data={displayRecipes}
             renderItem={({ index, item }) => (
-              <RecipeCard 
-                index={index} 
-                y={this.y} 
-                recipe={item} 
-                selectedIndex={this.state.selectedIndex} 
-                selected={item.id === this.state.selectedRecipe?.id} 
-                handleRecipePress={this.handleRecipePress} 
+              <RecipeCard
+                index={index}
+                y={this.y}
+                recipe={item}
+                selectedIndex={this.state.selectedIndex}
+                selected={item.id === this.state.selectedRecipe?.id}
+                handleRecipePress={this.handleRecipePress}
                 handleRecipeLongPress={this.handleRecipeLongPress}
                 handleRecipeFavoritePress={this.handleRecipeFavoritePress}
                 favorite={item.favorite}
