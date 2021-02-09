@@ -73,7 +73,6 @@ export default class Recipes extends React.Component {
       r.forEach((recipe) => {
         recipe.favorite ? favoriteRecipes.push(recipe) : null;
       });
-      console.log('get recipes');
       this.setState({ recipes: r, displayRecipes: this.sortRecipes(r, favoriteRecipes), favoriteRecipes: favoriteRecipes });
       // this.assignIds(r);
     });
@@ -157,19 +156,15 @@ export default class Recipes extends React.Component {
     recipes.unshift(recipe);
     // displayRecipes.push(recipe);
     setTimeout(() => this.flatListRef.current.scrollToIndex({ index: 0 }), 150);
-    console.log('add recipe');
     this.setState({ recipes: recipes });
   }
 
   addRecipeModal = (recipe) => {
     let { recipes, displayRecipes } = this.state;
-    console.log(this.state.displayRecipes.length);
     recipes.unshift(recipe);
     // displayRecipes.push(recipe);
     setTimeout(() => this.flatListRef.current.scrollToIndex({ index: 0 }), 150);
-    console.log('add recipe modal');
     this.setState({ recipes: recipes, displayRecipes: this.sortRecipes(recipes, this.state.favoriteRecipes) });
-    console.log(this.state.displayRecipes.length);
     this.createRecipeRef.current.snapTo(1);
   }
 
@@ -204,13 +199,11 @@ export default class Recipes extends React.Component {
   }
 
   editRecipe = () => {
-    // setTimeout(() => this.sheetRef.current.snapTo(1), 10);
     setTimeout(() => this.editRecipeRef.current.snapTo(0), 50);
     this.setState({ showEditRecipe: true });
   }
 
   saveEditRecipe = async (newRecipe) => {
-    console.log('save');
     setTimeout(() => this.editRecipeRef.current.snapTo(1), 50);
 
     let {displayRecipes, favoriteRecipes} = this.state;
@@ -237,7 +230,6 @@ export default class Recipes extends React.Component {
     displayRecipes[oldDisplayRecipeIndex].images = newRecipe.images;
 
     displayRecipes = this.sortRecipes(displayRecipes, favoriteRecipes);
-    console.log('save edit recipe');
     // this.setState({ recipes: recipes, displayRecipes: displayRecipes});
     const newRecipes = {
       recipes: recipes
@@ -247,7 +239,6 @@ export default class Recipes extends React.Component {
 
   cancelEditPress = () => {
     setTimeout(() => this.editRecipeRef.current.snapTo(1), 50);
-    console.log('cancel');
   }
 
   recipeSearch = (searchText) => {
@@ -257,7 +248,6 @@ export default class Recipes extends React.Component {
         this.flatListRef.current.scrollToIndex({ index: 0 });
       }
       LayoutAnimation.easeInEaseOut();
-      console.log('recipe search');
       this.setState({ displayRecipes: this.state.recipes });
       return;
     }
@@ -290,7 +280,6 @@ export default class Recipes extends React.Component {
     });
     newRecipes = newRecipes.concat(newRecipes1, newRecipes2, newRecipes3);
     LayoutAnimation.easeInEaseOut();
-    console.log('recipe search bottom');
     this.setState({ displayRecipes: newRecipes });
   }
 
@@ -344,7 +333,6 @@ export default class Recipes extends React.Component {
       index: displayRecipes.indexOf(displayRecipes.find((r) => r.id === recipe.id)),
       viewPosition: 0.5
     });
-    console.log('in favorite press');
     this.setState({ recipes: recipes, displayRecipes: displayRecipes, favoriteRecipes: favoriteRecipes });
     const newRecipes = {
       recipes: recipes
@@ -377,12 +365,6 @@ export default class Recipes extends React.Component {
   render() {
     let selectedIndex = 1;
     const { showSearch, recipes, displayRecipes, showFullRecipe } = this.state;
-    // console.log('recipe');
-    // console.log(recipes[recipes.indexOf(recipes.find((r) => r.id === '_wbrzjdhfp'))]?.title);
-    // console.log(recipes[recipes.indexOf(recipes.find((r) => r.id === '_wbrzjdhfp'))]?.ingredients[0].title);
-    // console.log('display recipe');
-    // console.log(displayRecipes[displayRecipes.indexOf(displayRecipes.find((r) => r.id === '_wbrzjdhfp'))]?.title);
-    // console.log(displayRecipes[displayRecipes.indexOf(displayRecipes.find((r) => r.id === '_wbrzjdhfp'))]?.ingredients[0].title);
 
     const onScroll = Animated.event([{ nativeEvent: { contentOffset: { y: this.y } } }], {
       useNativeDriver: true,
@@ -480,7 +462,6 @@ export default class Recipes extends React.Component {
                     this.flatListRef.current.scrollToIndex({ index: 0 });
                   }
                   this.searchRef.current.blur();
-                  console.log('cancel search');
                   this.setState({ showSearch: false, displayRecipes: this.state.recipes, searchText: '' });
                 }}
                 type="clear"

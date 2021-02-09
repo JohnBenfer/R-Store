@@ -1,10 +1,11 @@
 import React from 'react';
-import { StyleSheet, View, SafeAreaView, FlatList, ImageBackground, StatusBar, Platform, ScrollView, Dimensions, Pressable } from 'react-native';
-import { Input, Button, Overlay, Text, Icon } from 'react-native-elements';
+import { StyleSheet, View, SafeAreaView, FlatList, ImageBackground, StatusBar, Platform, ScrollView, Dimensions, Pressable, TouchableHighlight } from 'react-native';
+import { Input, Button, Overlay, Text, Icon, Tooltip } from 'react-native-elements';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default class Inventory extends React.Component {
+  toolTipRef = React.createRef();
   constructor(props) {
     super(props);
     this.state = {
@@ -106,9 +107,10 @@ export default class Inventory extends React.Component {
     const { recipe } = this.props;
     return (
       <View style={{ height: this.props.height, paddingBottom: 15 }}>
-
-
-        <ScrollView style={{ width: Dimensions.get("window").width, marginLeft: -16, marginTop: -17 }}>
+        <ScrollView
+          style={{ width: Dimensions.get("window").width, marginLeft: -16, marginTop: -17, }}
+          stickyHeaderIndices={[0]}
+        >
           {recipe.images.length > 0 ? <FlatList
             data={recipe.images}
             horizontal
@@ -116,7 +118,7 @@ export default class Inventory extends React.Component {
               return (
                 <View style={{ overflow: 'visible', paddingVertical: 0 }}>
                   <ImageBackground source={{ uri: image.item }} style={{ width: Dimensions.get("window").width, height: 400, marginHorizontal: 0, overflow: 'visible' }}>
-                    <LinearGradient colors={['transparent', '#000000']} style={{ position: 'absolute', bottom: 0, height: 100, width: '100%', opacity: 0.8 }} />
+                    {/* <LinearGradient colors={['transparent', '#000000']} style={{ position: 'absolute', bottom: 0, height: 100, width: '100%', opacity: 0.8 }} /> */}
                   </ImageBackground>
                 </View>
               );
@@ -128,33 +130,76 @@ export default class Inventory extends React.Component {
             decelerationRate={0.993}
             showsHorizontalScrollIndicator={false}
             ref={this.photoListRef}
-          /> : null}
-          <View style={[{ flexDirection: 'row', marginTop: recipe.title.length > 30 && recipe.images.length > 0 ? -80 : recipe.images.length > 0 ? -50 : 15, paddingHorizontal: 10, paddingRight: 70 }]}>
-            <Text style={[styles.title, { color: recipe.images.length > 0 ? 'white' : '#000' }]}>
-              {recipe.title}
-            </Text>
-            <View style={{position: 'absolute', right: 0, bottom: 0, marginBottom: -5}}>
-              <Button
+          /> : <View></View>}
+          <View style={[{ flexDirection: 'row', zIndex: 100, marginTop: recipe.title.length > 30 && recipe.images.length > 0 ? -80 : recipe.images.length > 0 ? -50 : 15, paddingHorizontal: 10, paddingRight: 70 }]}>
+            <View>
+              <Text style={[styles.title, { color: recipe.images.length > 0 ? 'white' : '#000', zIndex: 100 }]}>
+                {recipe.title}
+              </Text>
+              {recipe.images.length > 0 ? <LinearGradient colors={['transparent', '#000000']} style={{ zIndex: 10, position: 'absolute', top: 0, height: 100, width: Dimensions.get("window").width, opacity: 0.8, marginTop: -60, marginLeft: -10 }} /> : null}
+            </View>
+            <View style={{ position: 'absolute', right: 0, bottom: 0, marginBottom: 0, marginRight: 5 }}>
+              {/* <Button
                 onPress={() => this.props.editRecipe(recipe)}
                 title="edit"
                 type="clear"
                 titleStyle={{}}
-                buttonStyle={{ backgroundColor: 'transparent', }} />
+                buttonStyle={{ backgroundColor: 'transparent', }} /> */}
+              <View style={{ borderRadius: 20, overflow: 'hidden' }}>
+                <Tooltip
+                  ref={this.toolTipRef}
+                  withOverlay={false}
+                  withPointer={false}
+                  pointerColor="#fff"
+                  containerStyle={styles.menuContainer}
+                  skipAndroidStatusBar
+                  popover={
+                    <View>
+                      <TouchableHighlight
+                        underlayColor="#000"
+                        style={styles.menuItem}
+                        onPress={() => {
+                          this.toolTipRef.current.toggleTooltip();
+                          this.props.editRecipe(recipe);
+                        }}>
+                        <View style={styles.menuItemTextContainer}>
+                          <Text style={styles.menuItemText}>Edit</Text>
+                        </View>
+                      </TouchableHighlight>
+                      <TouchableHighlight underlayColor="#000" style={styles.menuItem} onPress={() => console.log('delete')}>
+                        <View style={styles.menuItemTextContainer}>
+                          <Text style={styles.menuItemText}>Delete</Text>
+                        </View>
+                      </TouchableHighlight>
+                    </View>
+                  }
+                />
+              </View>
+              <Icon
+                name="dots-three-horizontal"
+                type="entypo"
+                size={11}
+                color="#fff"
+                reverse
+                reverseColor="#000"
+                onPress={() => this.toolTipRef.current.toggleTooltip()}
+              />
             </View>
           </View>
-          <Text style={{ margin: 15, alignSelf: 'center', textAlign: 'center' }}>
-            {recipe.description}
+          <View style={{ zIndex: 100, backgroundColor: 'white' }}>
+            <Text style={{ margin: 15, marginTop: 25, alignSelf: 'center', textAlign: 'center' }}>
+              {recipe.description}
+            </Text>
+            <Text style={[styles.subtitle, { marginBottom: 7 }]}>
+              Ingredients
           </Text>
-          <Text style={[styles.subtitle, { marginBottom: 7 }]}>
-            Ingredients
+            {this.renderIngredients()}
+            <Text style={[styles.subtitle, { marginTop: 20 }]}>
+              Directions
           </Text>
-          {this.renderIngredients()}
-          <Text style={[styles.subtitle, { marginTop: 20 }]}>
-            Directions
-          </Text>
-          {this.renderDirections()}
-          <View style={{ height: 70 }}>
-
+            {this.renderDirections()}
+            <View style={{ height: 70 }}>
+            </View>
           </View>
         </ScrollView>
       </View>
@@ -178,5 +223,29 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#6b6b6b'
     // alignSelf: 'center'
-  }
+  },
+  menuContainer: {
+    // overflow: 'hidden',
+    marginTop: -20,
+    backgroundColor: 'transparent',
+    // borderRadius: 10,
+    // height: 70
+  },
+  menuItem: {
+    width: 150,
+    height: 35,
+    borderRadius: 10,
+    marginBottom: 5,
+  },
+  menuItemTextContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#eee',
+    borderRadius: 10
+  },
+  menuItemText: {
+    fontSize: 16,
+    marginLeft: 0,
+  },
 });
