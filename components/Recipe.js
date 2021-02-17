@@ -136,15 +136,9 @@ export default class Inventory extends React.Component {
               <Text style={[styles.title, { color: recipe.images.length > 0 ? 'white' : '#000', zIndex: 100 }]}>
                 {recipe.title}
               </Text>
-              {recipe.images.length > 0 ? <LinearGradient colors={['transparent', '#000000']} style={{ zIndex: 10, position: 'absolute', top: 0, height: 100, width: Dimensions.get("window").width, opacity: 0.8, marginTop: -60, marginLeft: -10 }} /> : null}
+              {recipe.images.length > 0 ? <LinearGradient colors={['transparent', '#000000']} style={{ zIndex: 10, position: 'absolute', top: 0, height: 100, width: Dimensions.get("window").width, opacity: 0.8, marginTop: recipe.title.length > 30 && recipe.images.length > 0 ? -27 : -60, marginLeft: -10 }} /> : null}
             </View>
             <View style={{ position: 'absolute', right: 0, bottom: 0, marginBottom: 0, marginRight: 5 }}>
-              {/* <Button
-                onPress={() => this.props.editRecipe(recipe)}
-                title="edit"
-                type="clear"
-                titleStyle={{}}
-                buttonStyle={{ backgroundColor: 'transparent', }} /> */}
               <View style={{ borderRadius: 20, overflow: 'hidden' }}>
                 <Tooltip
                   ref={this.toolTipRef}
@@ -166,7 +160,10 @@ export default class Inventory extends React.Component {
                           <Text style={styles.menuItemText}>Edit</Text>
                         </View>
                       </TouchableHighlight>
-                      <TouchableHighlight underlayColor="#000" style={styles.menuItem} onPress={() => console.log('delete')}>
+                      <TouchableHighlight underlayColor="#000" style={styles.menuItem} onPress={() => {
+                        this.toolTipRef.current.toggleTooltip();
+                        this.props.deleteRecipe(recipe);
+                      }}>
                         <View style={styles.menuItemTextContainer}>
                           <Text style={styles.menuItemText}>Delete</Text>
                         </View>

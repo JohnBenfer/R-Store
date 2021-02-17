@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import BottomTabNavigator from './components/BottomTabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import * as SplashScreen from 'expo-splash-screen';
 import { LogBox } from 'react-native';
 import SignUp from './components/SignUp';
 
@@ -14,6 +15,9 @@ export default function App() {
   LogBox.ignoreLogs(['Non-serializable values were found in the navigation state.',
   'Error: Native splash screen is already hidden.',
   'VirtualizedLists should never be nested inside plain ScrollViews with the same orientation']); // Ignore log notification by message
+
+  SplashScreen.preventAutoHideAsync();
+
   return (
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator initialRouteName='SignUp'>

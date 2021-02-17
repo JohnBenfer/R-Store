@@ -7,6 +7,7 @@ import CreateRecipeModal from './CreateRecipeModal';
 import EditRecipeModal from './EditRecipeModal';
 import Recipe from './Recipe';
 import * as FileSystem from 'expo-file-system';
+import * as SplashScreen from 'expo-splash-screen';
 import { RecipesPath } from '../Constants';
 import BottomSheet from 'reanimated-bottom-sheet';
 import Constants from 'expo-constants';
@@ -43,18 +44,18 @@ export default class Recipes extends React.Component {
   }
 
   async componentDidMount() {
-
+    setTimeout(() => SplashScreen.hideAsync(), 500);
     this.getRecipes();
     // prevents going back to signup page
     this.props.navigation.setOptions({
       headerRight: () => (
-        <Pressable style={{ borderWidth: 2, borderColor: '#636363', borderRadius: 6, marginHorizontal: 7, }} onPress={this.createRecipeModal} hitSlop={10}>
+        <Pressable style={{ borderWidth: 0, borderColor: '#636363', marginHorizontal: 7, }} onPress={this.createRecipeModal} hitSlop={10}>
           <Icon
             style={{ alignSelf: 'center' }}
             name="md-add"
             type="ionicon"
-            color='#919191'
-            size={20}
+            color='#000'
+            size={35}
             onPress={this.createRecipeModal}
           />
         </Pressable>
@@ -76,57 +77,6 @@ export default class Recipes extends React.Component {
       this.setState({ recipes: r, displayRecipes: this.sortRecipes(r, favoriteRecipes), favoriteRecipes: favoriteRecipes });
       // this.assignIds(r);
     });
-  }
-
-  loadMockRecipes() {
-    return (
-      [
-        {
-          id: 1,
-          title: 'meatballs',
-          description: 'a ball of meat',
-          ingredients: [{ quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' }, { quantity: '1 c.', title: 'ground beef' }, { quantity: '1/3 c.', title: 'bread crumbs' },],
-          directions: ['Add the meat', 'add the bread crumbs', 'add seasoning', 'mix togehter', 'form balls', 'bake 30 minutes at 350'],
-        },
-        { id: 2, title: 'pie', description: 'a circle of yum' },
-        { id: 3, title: 'pizza', description: 'a circle of bread and meat' },
-        { id: 4, title: 'meat load', description: 'a loaf of meat' },
-        { id: 5, title: 'mashed potatoes', description: 'a mashed of potatoes' },
-        { id: 6, title: 'meatballs', description: 'a ball of meat' },
-        { id: 7, title: 'pie', description: 'a circle of yum' },
-        { id: 8, title: 'pizza', description: 'a circle of bread and meat' },
-        { id: 9, title: 'meat load', description: 'a loaf of meat' },
-        { id: 10, title: 'mashed potatoes', description: 'a mashed of potatoes' },
-        { id: 11, title: 'roasted chicken', description: 'a whole bird' },
-        { id: 12, title: 'cbr pizza', description: 'a pizza with cbr', ingredients: [{ quantity: '1 c.', title: 'chicken' }, { quantity: '1/2 c.', title: 'bacon' }] },
-        { id: 13, title: 'enchilada', description: 'tortilla with chicken and cheese' },
-        // { id: 14, title: 'meat load', description: 'a loaf of meat' },
-        // { id: 15, title: 'mashed potatoes', description: 'a mashed of potatoes' },
-        // { id: 16, title: 'meatballs', description: 'a ball of meat' },
-        // { id: 17, title: 'pie', description: 'a circle of yum' },
-        // { id: 18, title: 'pizza', description: 'a circle of bread and meat' },
-        // { id: 19, title: 'meat load', description: 'a loaf of meat' },
-        // { id: 20, title: 'mashed potatoes', description: 'a mashed of potatoes' },
-        // { id: 21, title: 'meatballs', description: 'a ball of meat' },
-        // { id: 22, title: 'pie', description: 'a circle of yum' },
-        // { id: 23, title: 'pizza', description: 'a circle of bread and meat' },
-        // { id: 24, title: 'meat load', description: 'a loaf of meat' },
-        // { id: 25, title: 'mashed potatoes', description: 'a mashed of potatoes' },
-        // { id: 26, title: 'meatballs', description: 'a ball of meat' },
-        // { id: 27, title: 'pie', description: 'a circle of yum' },
-        // { id: 28, title: 'pizza', description: 'a circle of bread and meat' },
-        // { id: 29, title: 'meat load', description: 'a loaf of meat' },
-        // { id: 31, title: 'meatballs', description: 'a ball of meat' },
-        // { id: 32, title: 'pie', description: 'a circle of yum' },
-        // { id: 33, title: 'pizza', description: 'a circle of bread and meat' },
-        // { id: 34, title: 'meat load', description: 'a loaf of meat' },
-        // { id: 35, title: 'mashed potatoes', description: 'a mashed of potatoes' },
-        // { id: 36, title: 'meatballs', description: 'a ball of meat' },
-        // { id: 37, title: 'pie', description: 'a circle of yum' },
-        // { id: 38, title: 'pizza', description: 'a circle of bread and meat' },
-        // { id: 39, title: 'meat load', description: 'a loaf of meat' },
-      ]
-    );
   }
 
   assignIds = async (recipes) => {
@@ -171,10 +121,13 @@ export default class Recipes extends React.Component {
   sortRecipes = (recipes, favoriteRecipes) => {
     let unPinnedRecipes = [];
     recipes.forEach((r) => {
-      if (!favoriteRecipes.includes(r)) {
+      if (!favoriteRecipes.find((fR) => fR.id === r.id)) {
         unPinnedRecipes.push(r);
       }
     });
+    if (recipes.length !== favoriteRecipes.length + unPinnedRecipes.length) {
+      console.warn('Error! Mismatch recipes in sort.');
+    }
     return favoriteRecipes.concat(unPinnedRecipes);
   }
 
@@ -187,7 +140,7 @@ export default class Recipes extends React.Component {
     this.setState({ showCreateRecipe: true });
   }
 
-  cancelPress = () => {
+  cancelCreatePress = () => {
     this.createRecipeRef.current.snapTo(1);
   }
 
@@ -206,7 +159,7 @@ export default class Recipes extends React.Component {
   saveEditRecipe = async (newRecipe) => {
     setTimeout(() => this.editRecipeRef.current.snapTo(1), 50);
 
-    let {displayRecipes, favoriteRecipes} = this.state;
+    let { displayRecipes, favoriteRecipes } = this.state;
     let recipes;
     await FileSystem.readAsStringAsync(RecipesPath).then((res) => {
       recipes = JSON.parse(res).recipes;
@@ -283,6 +236,19 @@ export default class Recipes extends React.Component {
     this.setState({ displayRecipes: newRecipes });
   }
 
+  cancelSearchPress = () => {
+    if (this.state.searchText && this.state.searchText.length > 0) {
+      setTimeout(() => this.flatListRef.current.scrollToIndex({ index: 0 }), 15);
+    }
+    this.searchRef.current.blur();
+    console.log('favs in cancel');
+    // console.log(this.state.favoriteRecipes);
+    // console.log(this.state.recipes);
+    const sortedRecipes = this.sortRecipes(this.state.recipes, this.state.favoriteRecipes);
+    console.log(sortedRecipes);
+    this.setState({ showSearch: false, displayRecipes: sortedRecipes, searchText: '' });
+  }
+
   handleRecipePress = (recipe, index) => {
     this.state.selectedRecipe !== recipe ? this.setState({ selectedRecipe: recipe }) : null;
     this.flatListRef.current.scrollToIndex({
@@ -302,7 +268,40 @@ export default class Recipes extends React.Component {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }
 
-  deleteRecipe = (recipe) => {
+  deleteRecipe = async (recipe) => {
+    let {recipes, displayRecipes, favoriteRecipes} = this.state;
+    console.log('recipe delete');
+    console.log(recipe.title);
+
+    let oldRecipes;
+    await FileSystem.readAsStringAsync(RecipesPath).then((res) => {
+      oldRecipes = JSON.parse(res).recipes;
+    }).catch(() => {
+      console.log('error reading recipes file');
+    });
+
+    // close Recipe 
+    this.sheetRef?.current?.snapTo(1);
+    this.setState({ disabled: false });
+    // remove from file
+    oldRecipes.splice(oldRecipes.indexOf(oldRecipes.find((r) => r.id === recipe.id)), 1);
+    const newRecipes = {
+      recipes: oldRecipes
+    };
+    await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify(newRecipes));
+    // remove from displayRecipes state
+    displayRecipes.splice(displayRecipes.indexOf(displayRecipes.find((r) => r.id === recipe.id)), 1);
+    // remove from recipes state
+    recipes.splice(recipes.indexOf(recipes.find((r) => r.id === recipe.id)), 1);
+    // remove from favorite recipes
+    favoriteRecipes.splice(favoriteRecipes.indexOf(favoriteRecipes.find((r) => r.id === recipe.id)), 1);
+    console.log('\n\n\n\nfavs in delete');
+    console.log(favoriteRecipes);
+    console.log('\n\n\n\ndisplay recipes:');
+    console.log(displayRecipes);
+    console.log('\n\n\n\recipes:');
+    console.log(recipes);
+    this.setState({ recipes: recipes, displayRecipes: displayRecipes, favoriteRecipes: favoriteRecipes });
 
   }
 
@@ -340,7 +339,7 @@ export default class Recipes extends React.Component {
     await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify(newRecipes));
   }
 
-  renderContent = () => {
+  renderRecipe = () => {
     const r = this.state.selectedRecipe;
     return (
       <View
@@ -350,16 +349,16 @@ export default class Recipes extends React.Component {
           height: recipeHeight,
         }}
       >
-        <Recipe recipe={r} height={recipeHeight} editRecipe={this.editRecipe} />
+        <Recipe recipe={r} height={recipeHeight} editRecipe={this.editRecipe} deleteRecipe={this.deleteRecipe} />
       </View>);
   }
 
   renderCreateRecipe = () => {
-    return <CreateRecipeModal addRecipe={this.addRecipeModal} cancelPress={this.cancelPress} generateId={this.generateId} />
+    return <CreateRecipeModal addRecipe={this.addRecipeModal} cancelPress={this.cancelCreatePress} generateId={this.generateId} />
   }
 
   renderEditRecipe = () => {
-    return <EditRecipeModal saveEditRecipe={this.saveEditRecipe} cancelEditPress={this.cancelEditPress} recipe={this.state.selectedRecipe}/>
+    return <EditRecipeModal saveEditRecipe={this.saveEditRecipe} cancelEditPress={this.cancelEditPress} recipe={this.state.selectedRecipe} />
   }
 
   render() {
@@ -403,7 +402,7 @@ export default class Recipes extends React.Component {
             ref={this.sheetRef}
             snapPoints={[recipeHeight - 0, 0]}
             borderRadius={20}
-            renderContent={this.renderContent}
+            renderContent={this.renderRecipe}
             initialSnap={1}
             enabledBottomInitialAnimation={true}
             onCloseStart={() => this.setState({ disabled: !this.state.showEditRecipe ? false : true })}
@@ -457,13 +456,7 @@ export default class Recipes extends React.Component {
             <View style={{ position: 'absolute', right: 8, marginTop: 3 }}>
               <Button
                 title='cancel'
-                onPress={() => {
-                  if (this.state.searchText && this.state.searchText.length > 0) {
-                    this.flatListRef.current.scrollToIndex({ index: 0 });
-                  }
-                  this.searchRef.current.blur();
-                  this.setState({ showSearch: false, displayRecipes: this.state.recipes, searchText: '' });
-                }}
+                onPress={this.cancelSearchPress}
                 type="clear"
                 titleStyle={styles.cancelButtonTitle}
                 buttonStyle={{ backgroundColor: 'transparent' }}
