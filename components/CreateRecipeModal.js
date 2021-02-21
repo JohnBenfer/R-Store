@@ -25,6 +25,8 @@ export default class CreateRecipeModal extends React.Component {
       description: '',
       ingredients: [{ title: '' }, { title: '' }],
       directions: ['', ''],
+      titleError: false,
+      descriptionError: false,
     };
   }
 
@@ -49,8 +51,8 @@ export default class CreateRecipeModal extends React.Component {
       images.push(result.uri);
       LayoutAnimation.easeInEaseOut();
       this.setState({ images: images });
-      setTimeout(() => this.photoListRef.current.scrollToIndex({index: images.length-1}), 10);
-      
+      setTimeout(() => this.photoListRef.current.scrollToIndex({ index: images.length - 1 }), 10);
+
     }
   }
 
@@ -70,12 +72,15 @@ export default class CreateRecipeModal extends React.Component {
       images.push(result.uri);
       LayoutAnimation.easeInEaseOut();
       this.setState({ images: images });
-      setTimeout(() => this.photoListRef.current.scrollToIndex({index: images.length-1}), 1);
+      setTimeout(() => this.photoListRef.current.scrollToIndex({ index: images.length - 1 }), 1);
     }
   }
 
   saveRecipe = async () => {
-    const { title, description, ingredients, directions, images } = this.state;
+    const { title, description, ingredients, directions, images, titleError, descriptionError } = this.state;
+    if (titleError || descriptionError) {
+      return;
+    }
     let recipes;
     await FileSystem.readAsStringAsync(RecipesPath).then((res) => {
       recipes = JSON.parse(res);
@@ -138,12 +143,40 @@ export default class CreateRecipeModal extends React.Component {
     this.setState({ directions });
   }
 
+  changeTitle = (text) => {
+    if (text.length < 40) {
+      this.setState({ titleError: false, title: text });
+    } else {
+      this.setState({ titleError: true, title: text });
+    }
+  }
+
+  allIngredientsBlank = (items) => {
+    let blank = true;
+    items.forEach(item => {
+      if (item.title.trim().length > 0) {
+        blank = false;
+      }
+    });
+    return blank;
+  }
+
+  allDirectionsBlank = (directions) => {
+    let blank = true;
+    directions.forEach(item => {
+      if (item.trim().length > 0) {
+        blank = false;
+      }
+    });
+    return blank;
+  }
+
   render() {
-    const { images, title, ingredients, directions, description } = this.state;
+    const { images, title, ingredients, directions, description, titleError, descriptionError } = this.state;
     return (
       <SafeAreaView>
-        <View style={{backgroundColor: '#fff'}}>
-          <View style={[styles.row, {marginBottom: 15, marginTop: 10}]}>
+        <View style={{ backgroundColor: '#fff' }}>
+          <View style={[styles.row, { marginBottom: 15, marginTop: 10 }]}>
             <View style={styles.cancelButtonContainer}>
               <Button
                 onPress={() => this.props.cancelPress()}
@@ -159,7 +192,7 @@ export default class CreateRecipeModal extends React.Component {
                 title="Save"
                 containerStyle={styles.saveButtonBorder}
                 titleStyle={styles.saveButtonTitle}
-                disabled={false}
+                disabled={(titleError || descriptionError) || (title.length === 0 || this.allIngredientsBlank(ingredients) || this.allDirectionsBlank(directions))}
               />
             </View>
           </View>
@@ -171,8 +204,13 @@ export default class CreateRecipeModal extends React.Component {
               <TextInput
                 style={[styles.textInput, { width: '100%', fontSize: 16 }]}
                 autoFocus={true}
-                onChangeText={(text) => this.setState({ title: text })}
+                onChangeText={(text) => this.changeTitle(text)}
+                value={this.state.title}
               />
+              {titleError ? 
+              <Text style={{color: 'red'}}>
+                Title is too long
+              </Text> : null}
             </View>
             <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
               Description

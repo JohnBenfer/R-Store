@@ -142,8 +142,8 @@ const RecipeCard = (props) => {
                   </Pressable>
                 </View>
               </View>
-              <View style={{ borderTopWidth: 1, borderBottomWidth: 1, marginVertical: 7, paddingVertical: 10, marginHorizontal: 15, borderColor: '#ccc' }}>
-                <Text style={{ color: '#000', alignSelf: 'flex-start', fontSize: 15, }}>{props.recipe.description}</Text>
+              <View style={{ borderTopWidth: 1, borderBottomWidth: props.recipe.description?.length > 0 ? 1 : 0, marginVertical: 7, paddingVertical: 10, marginHorizontal: 15, borderColor: '#ccc' }}>
+                {props.recipe.description?.length > 0 ? <Text style={{ color: '#000', alignSelf: 'flex-start', fontSize: 15, }}>{props.recipe.description}</Text> : null}
               </View>
               <View style={styles.ingredients}>
                 {renderIngredients()}

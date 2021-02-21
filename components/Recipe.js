@@ -1,16 +1,22 @@
 import React from 'react';
-import { StyleSheet, View, SafeAreaView, FlatList, ImageBackground, StatusBar, Platform, ScrollView, Dimensions, Pressable, TouchableHighlight } from 'react-native';
+import { StyleSheet, View, SafeAreaView, FlatList, ImageBackground, StatusBar, Platform, ScrollView, Dimensions, Pressable, TouchableHighlight, Image } from 'react-native';
 import { Input, Button, Overlay, Text, Icon, Tooltip } from 'react-native-elements';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 
+const SINGLE_LINE_HEIGHT = 38;
+let titleOverflow = false;
+
 export default class Inventory extends React.Component {
   toolTipRef = React.createRef();
+  titleRef = React.createRef();
   constructor(props) {
     super(props);
     this.state = {
       checkedIngredients: [],
       checkedDirections: [],
+      titleOverflow: false,
+      viewMarginTop: 15,
     };
   }
 
@@ -18,7 +24,10 @@ export default class Inventory extends React.Component {
    * Receives the current user as this.props.route.params.user
    */
   async componentDidMount() {
-
+    const { recipe } = this.props;
+    setTimeout(() => {
+      this.setState({ viewMarginTop: titleOverflow && recipe.images.length > 0 ? -80 : recipe.images.length > 0 ? -50 : 15 });
+    }, 1000);
   }
 
   ingredientChecked = (index) => {
@@ -105,6 +114,7 @@ export default class Inventory extends React.Component {
 
   render() {
     const { recipe } = this.props;
+    // const { viewMarginTop } = this.state;
     return (
       <View style={{ height: this.props.height, paddingBottom: 15 }}>
         <ScrollView
@@ -117,9 +127,7 @@ export default class Inventory extends React.Component {
             renderItem={(image, index) => {
               return (
                 <View style={{ overflow: 'visible', paddingVertical: 0 }}>
-                  <ImageBackground source={{ uri: image.item }} style={{ width: Dimensions.get("window").width, height: 400, marginHorizontal: 0, overflow: 'visible' }}>
-                    {/* <LinearGradient colors={['transparent', '#000000']} style={{ position: 'absolute', bottom: 0, height: 100, width: '100%', opacity: 0.8 }} /> */}
-                  </ImageBackground>
+                  <Image source={{ uri: image.item }} style={{ width: Dimensions.get("window").width, height: 400, marginHorizontal: 0, overflow: 'visible' }} />
                 </View>
               );
             }}
@@ -133,10 +141,21 @@ export default class Inventory extends React.Component {
           /> : <View></View>}
           <View style={[{ flexDirection: 'row', zIndex: 100, marginTop: recipe.title.length > 30 && recipe.images.length > 0 ? -80 : recipe.images.length > 0 ? -50 : 15, paddingHorizontal: 10, paddingRight: 70 }]}>
             <View>
-              <Text style={[styles.title, { color: recipe.images.length > 0 ? 'white' : '#000', zIndex: 100 }]}>
-                {recipe.title}
-              </Text>
-              {recipe.images.length > 0 ? <LinearGradient colors={['transparent', '#000000']} style={{ zIndex: 10, position: 'absolute', top: 0, height: 100, width: Dimensions.get("window").width, opacity: 0.8, marginTop: recipe.title.length > 30 && recipe.images.length > 0 ? -27 : -60, marginLeft: -10 }} /> : null}
+              <View
+                style={{ zIndex: 100 }}
+                onLayout={(event) => {
+                  if (event.nativeEvent.layout.height > SINGLE_LINE_HEIGHT) {
+                    titleOverflow = true;
+                  }
+                }}>
+                <Text style={[styles.title, { color: recipe.images.length > 0 ? 'white' : '#000', zIndex: 1000 }]} >
+                  {recipe.title}
+                </Text>
+              </View>
+              {recipe.images.length > 0 ? 
+              <LinearGradient 
+                colors={['transparent', '#000000']} 
+                style={{ zIndex: 10, position: 'absolute', top: 0, height: 100, width: Dimensions.get("window").width, opacity: 0.8, marginTop: titleOverflow && recipe.images.length > 0 ? -27 : -60, marginLeft: -10 }} /> : null}
             </View>
             <View style={{ position: 'absolute', right: 0, bottom: 0, marginBottom: 0, marginRight: 5 }}>
               <View style={{ borderRadius: 20, overflow: 'hidden' }}>
@@ -184,9 +203,10 @@ export default class Inventory extends React.Component {
             </View>
           </View>
           <View style={{ zIndex: 100, backgroundColor: 'white' }}>
-            <Text style={{ margin: 15, marginTop: 25, alignSelf: 'center', textAlign: 'center' }}>
+            {recipe.description?.length > 0 || recipe.images?.length > 0 ? <Text style={{ margin: 15, marginTop: 25, alignSelf: 'center', textAlign: 'center' }}>
               {recipe.description}
-            </Text>
+            </Text> :
+              <View style={{ marginTop: 10, borderTopWidth: 1, marginHorizontal: 10, borderColor: '#ccc' }} />}
             <Text style={[styles.subtitle, { marginBottom: 7 }]}>
               Ingredients
           </Text>

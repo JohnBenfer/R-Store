@@ -39,6 +39,7 @@ export default class Recipes extends React.Component {
       showCreateRecipe: false,
       showEditRecipe: false,
       favoriteRecipes: [],
+      titleOverflow: false,
     };
 
   }
@@ -113,7 +114,7 @@ export default class Recipes extends React.Component {
     let { recipes, displayRecipes } = this.state;
     recipes.unshift(recipe);
     // displayRecipes.push(recipe);
-    setTimeout(() => this.flatListRef.current.scrollToIndex({ index: 0 }), 150);
+    setTimeout(() => this.flatListRef.current.scrollToIndex({ index: this.state.favoriteRecipes.length, viewPosition: 0.5 }), 150);
     this.setState({ recipes: recipes, displayRecipes: this.sortRecipes(recipes, this.state.favoriteRecipes) });
     this.createRecipeRef.current.snapTo(1);
   }
@@ -188,6 +189,9 @@ export default class Recipes extends React.Component {
       recipes: recipes
     };
     await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify(newRecipes));
+    // close and open recipe card to rerender updates
+    setTimeout(() => this.sheetRef.current.snapTo(1), 20);
+    setTimeout(() => this.sheetRef.current.snapTo(0), 200);
   }
 
   cancelEditPress = () => {
@@ -257,7 +261,7 @@ export default class Recipes extends React.Component {
     });
     // if (index + 1 === this.state.selectedIndex || index + 1 === this.state.displayRecipes.length) {
     // this.props.navigation.push("Recipe", { recipe: recipe });
-    setTimeout(() => this.sheetRef.current.snapTo(0), 10);
+    setTimeout(() => this.sheetRef.current.snapTo(0), 50);
     this.setState({ showFullRecipe: true });
 
     // }
@@ -349,7 +353,7 @@ export default class Recipes extends React.Component {
           height: recipeHeight,
         }}
       >
-        <Recipe recipe={r} height={recipeHeight} editRecipe={this.editRecipe} deleteRecipe={this.deleteRecipe} />
+        <Recipe recipe={r} height={recipeHeight} editRecipe={this.editRecipe} deleteRecipe={this.deleteRecipe}/>
       </View>);
   }
 

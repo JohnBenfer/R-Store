@@ -24,6 +24,13 @@ export default class EditRecipeModal extends React.Component {
       description: props.recipe.description,
       ingredients: ingredients,
       directions: directions,
+      titleError: false,
+      descriptionError: false,
+      titleChanged: false,
+      descriptionChanged: false,
+      ingredientsChanged: false,
+      directionsChanged: false,
+      imagesChanged: false,
     };
   }
 
@@ -47,7 +54,7 @@ export default class EditRecipeModal extends React.Component {
       let images = this.state.images;
       images.push(result.uri);
       LayoutAnimation.easeInEaseOut();
-      this.setState({ images: images });
+      this.setState({ images: images, imagesChanged: true });
       setTimeout(() => this.photoListRef.current.scrollToIndex({ index: images.length - 1 }), 10);
 
     }
@@ -68,7 +75,7 @@ export default class EditRecipeModal extends React.Component {
       let images = this.state.images;
       images.push(result.uri);
       LayoutAnimation.easeInEaseOut();
-      this.setState({ images: images });
+      this.setState({ images: images, imagesChanged: true });
       setTimeout(() => this.photoListRef.current.scrollToIndex({ index: images.length - 1 }), 1);
     }
   }
@@ -101,7 +108,7 @@ export default class EditRecipeModal extends React.Component {
   handleIngredientChange = (text, index) => {
     let { ingredients } = this.state;
     ingredients[index].title = text;
-    this.setState({ ingredients });
+    this.setState({ ingredients, ingredientsChanged: true });
   }
 
   addDirection = () => {
@@ -119,11 +126,45 @@ export default class EditRecipeModal extends React.Component {
   handleDirectionChange = (text, index) => {
     let { directions } = this.state;
     directions[index] = text;
-    this.setState({ directions });
+    this.setState({ directions, directionsChanged: true });
+  }
+
+  changeTitle = (text) => {
+    if (text.length < 40) {
+      this.setState({ titleError: false, title: text, titleChanged: true });
+    } else {
+      this.setState({ titleError: true, title: text, titleChanged: true });
+    }
+  }
+
+  allIngredientsBlank = (items) => {
+    let blank = true;
+    items.forEach(item => {
+      if (item.title.trim().length > 0) {
+        blank = false;
+      }
+    });
+    return blank;
+  }
+
+  allDirectionsBlank = (directions) => {
+    let blank = true;
+    directions.forEach(item => {
+      if (item.trim().length > 0) {
+        blank = false;
+      }
+    });
+    return blank;
   }
 
   render() {
-    const { images, title, ingredients, directions, description } = this.state;
+    const { images, title, ingredients, directions, description, descriptionError, titleError, ingredientsChanged, directionsChanged, imagesChanged } = this.state;
+    // console.log("boolean values:");
+    // console.log(title !== this.props.recipe.title);
+    // console.log(description !== this.props.recipe.description);
+    // console.log(ingredientsChanged);
+    // console.log(directionsChanged);
+    // console.log(imagesChanged);
     return (
       <SafeAreaView>
         <View style={{ backgroundColor: '#fff' }}>
@@ -143,7 +184,15 @@ export default class EditRecipeModal extends React.Component {
                 title="Save"
                 containerStyle={styles.saveButtonBorder}
                 titleStyle={styles.saveButtonTitle}
-                disabled={false}
+                disabled={
+                  (titleError || descriptionError) || 
+                  (title.length === 0 || this.allIngredientsBlank(ingredients) || this.allDirectionsBlank(directions)) ||
+                  (title === this.props.recipe.title && 
+                    description === this.props.recipe.description && 
+                    !ingredientsChanged &&
+                    !directionsChanged &&
+                    !imagesChanged)
+                }
               />
             </View>
           </View>
@@ -155,9 +204,13 @@ export default class EditRecipeModal extends React.Component {
               <TextInput
                 style={[styles.textInput, { width: '100%', fontSize: 16 }]}
                 autoFocus={true}
-                onChangeText={(text) => this.setState({ title: text })}
-                value={title}
+                onChangeText={(text) => this.changeTitle(text)}
+                value={this.state.title}
               />
+              {titleError ?
+                <Text style={{ color: 'red' }}>
+                  Title is too long
+              </Text> : null}
             </View>
             <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
               Description
