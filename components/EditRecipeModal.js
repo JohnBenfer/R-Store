@@ -324,7 +324,7 @@ export default class EditRecipeModal extends React.Component {
                                 let newImages = images;
                                 newImages.splice(images.indexOf(image.item), 1)
                                 LayoutAnimation.easeInEaseOut();
-                                this.setState({ images: newImages });
+                                this.setState({ images: newImages, imagesChanged: true });
                               }}
                               title='x'
                               containerStyle={{ borderRadius: 20 }} titleStyle={{ fontSize: 14 }}

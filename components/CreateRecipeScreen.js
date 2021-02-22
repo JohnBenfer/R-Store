@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'react';
 import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Image, ImageBackground, LayoutAnimation, TextInput } from 'react-native';
 import { Input, Button, Overlay, Text, Icon } from 'react-native-elements';
 import * as ImagePicker from 'expo-image-picker';
@@ -8,7 +9,11 @@ import * as FileSystem from 'expo-file-system';
 import { RecipesPath } from '../Constants';
 import { ScrollView } from 'react-native';
 
-export default class Inventory extends React.Component {
+const propTypes = {
+  addRecipe: PropTypes.func,
+  cancelPress: PropTypes.func,
+}
+export default class CreateRecipeModal extends React.Component {
   ingredientRef = React.createRef();
   photoListRef = React.createRef();
 
@@ -20,6 +25,8 @@ export default class Inventory extends React.Component {
       description: '',
       ingredients: [{ title: '' }, { title: '' }],
       directions: ['', ''],
+      titleError: false,
+      descriptionError: false,
     };
   }
 
@@ -70,7 +77,10 @@ export default class Inventory extends React.Component {
   }
 
   saveRecipe = async () => {
-    const { title, description, ingredients, directions, images } = this.state;
+    const { title, description, ingredients, directions, images, titleError, descriptionError } = this.state;
+    if (titleError || descriptionError) {
+      return;
+    }
     let recipes;
     await FileSystem.readAsStringAsync(RecipesPath).then((res) => {
       recipes = JSON.parse(res);
@@ -84,7 +94,6 @@ export default class Inventory extends React.Component {
       ingredients: ingredients,
       directions: directions,
       images: images,
-      favorite: false,
     }
     const newRecipes = {
       recipes: [
@@ -95,8 +104,7 @@ export default class Inventory extends React.Component {
     await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify(newRecipes));
     FileSystem.readAsStringAsync(RecipesPath).then((res) => {
     });
-    this.props.route.params.addRecipe(newRecipe);
-    this.props.navigation.goBack();
+    this.props.addRecipe(newRecipe);
   }
 
   addIngredient = () => {
@@ -135,15 +143,43 @@ export default class Inventory extends React.Component {
     this.setState({ directions });
   }
 
+  changeTitle = (text) => {
+    if (text.length < 40) {
+      this.setState({ titleError: false, title: text });
+    } else {
+      this.setState({ titleError: true, title: text });
+    }
+  }
+
+  allIngredientsBlank = (items) => {
+    let blank = true;
+    items.forEach(item => {
+      if (item.title.trim().length > 0) {
+        blank = false;
+      }
+    });
+    return blank;
+  }
+
+  allDirectionsBlank = (directions) => {
+    let blank = true;
+    directions.forEach(item => {
+      if (item.trim().length > 0) {
+        blank = false;
+      }
+    });
+    return blank;
+  }
+
   render() {
-    const { images, title, ingredients, directions, description } = this.state;
+    const { images, title, ingredients, directions, description, titleError, descriptionError } = this.state;
     return (
       <SafeAreaView>
-        <View>
-          <View style={[styles.row, { marginBottom: 15 }]}>
+        <View style={{ backgroundColor: '#fff' }}>
+          <View style={[styles.row, { marginBottom: 15, marginTop: 10 }]}>
             <View style={styles.cancelButtonContainer}>
               <Button
-                onPress={() => this.props.navigation.goBack()}
+                onPress={() => this.props.cancelPress()}
                 title="Cancel"
                 type="clear"
                 titleStyle={styles.cancelButtonTitle}
@@ -156,11 +192,11 @@ export default class Inventory extends React.Component {
                 title="Save"
                 containerStyle={styles.saveButtonBorder}
                 titleStyle={styles.saveButtonTitle}
-                disabled={false}
+                disabled={(titleError || descriptionError) || (title.length === 0 || this.allIngredientsBlank(ingredients) || this.allDirectionsBlank(directions))}
               />
             </View>
           </View>
-          <ScrollView>
+          <ScrollView bounces={true}>
             <Text style={{ marginTop: 5, marginBottom: 5, paddingHorizontal: 15, fontSize: 18, alignSelf: 'center', fontWeight: 'bold' }}>
               Recipe Name
           </Text>
@@ -168,8 +204,13 @@ export default class Inventory extends React.Component {
               <TextInput
                 style={[styles.textInput, { width: '100%', fontSize: 16 }]}
                 autoFocus={true}
-                onChangeText={(text) => this.setState({ title: text })}
+                onChangeText={(text) => this.changeTitle(text)}
+                value={this.state.title}
               />
+              {titleError ? 
+              <Text style={{color: 'red'}}>
+                Title is too long
+              </Text> : null}
             </View>
             <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
               Description
@@ -305,7 +346,7 @@ export default class Inventory extends React.Component {
                   </View>}
               </View>
             </View>
-            <View style={{ height: 100 }}>
+            <View style={{ height: 300 }}>
 
             </View>
           </ScrollView>

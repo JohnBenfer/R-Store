@@ -152,13 +152,7 @@ export default class Recipes extends React.Component {
     }, 150);
   }
 
-  editRecipe = () => {
-    setTimeout(() => this.editRecipeRef.current.snapTo(0), 50);
-    this.setState({ showEditRecipe: true });
-  }
-
   saveEditRecipe = async (newRecipe) => {
-    setTimeout(() => this.editRecipeRef.current.snapTo(1), 50);
 
     let { displayRecipes, favoriteRecipes } = this.state;
     let recipes;
@@ -184,18 +178,12 @@ export default class Recipes extends React.Component {
     displayRecipes[oldDisplayRecipeIndex].images = newRecipe.images;
 
     displayRecipes = this.sortRecipes(displayRecipes, favoriteRecipes);
-    // this.setState({ recipes: recipes, displayRecipes: displayRecipes});
+    this.setState({ recipes: recipes, displayRecipes: displayRecipes});
     const newRecipes = {
       recipes: recipes
     };
     await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify(newRecipes));
     // close and open recipe card to rerender updates
-    setTimeout(() => this.sheetRef.current.snapTo(1), 20);
-    setTimeout(() => this.sheetRef.current.snapTo(0), 200);
-  }
-
-  cancelEditPress = () => {
-    setTimeout(() => this.editRecipeRef.current.snapTo(1), 50);
   }
 
   recipeSearch = (searchText) => {
@@ -245,11 +233,7 @@ export default class Recipes extends React.Component {
       setTimeout(() => this.flatListRef.current.scrollToIndex({ index: 0 }), 15);
     }
     this.searchRef.current.blur();
-    console.log('favs in cancel');
-    // console.log(this.state.favoriteRecipes);
-    // console.log(this.state.recipes);
     const sortedRecipes = this.sortRecipes(this.state.recipes, this.state.favoriteRecipes);
-    console.log(sortedRecipes);
     this.setState({ showSearch: false, displayRecipes: sortedRecipes, searchText: '' });
   }
 
@@ -260,8 +244,8 @@ export default class Recipes extends React.Component {
       viewPosition: 0.5
     });
     // if (index + 1 === this.state.selectedIndex || index + 1 === this.state.displayRecipes.length) {
-    // this.props.navigation.push("Recipe", { recipe: recipe });
-    setTimeout(() => this.sheetRef.current.snapTo(0), 50);
+    this.props.navigation.push("Recipe", { recipe: recipe, editRecipe: this.editRecipe, deleteRecipe: this.deleteRecipe, saveEditRecipe: this.saveEditRecipe });
+    // setTimeout(() => this.sheetRef.current.snapTo(0), 50);
     this.setState({ showFullRecipe: true });
 
     // }
@@ -285,8 +269,6 @@ export default class Recipes extends React.Component {
     });
 
     // close Recipe 
-    this.sheetRef?.current?.snapTo(1);
-    this.setState({ disabled: false });
     // remove from file
     oldRecipes.splice(oldRecipes.indexOf(oldRecipes.find((r) => r.id === recipe.id)), 1);
     const newRecipes = {
@@ -299,12 +281,6 @@ export default class Recipes extends React.Component {
     recipes.splice(recipes.indexOf(recipes.find((r) => r.id === recipe.id)), 1);
     // remove from favorite recipes
     favoriteRecipes.splice(favoriteRecipes.indexOf(favoriteRecipes.find((r) => r.id === recipe.id)), 1);
-    console.log('\n\n\n\nfavs in delete');
-    console.log(favoriteRecipes);
-    console.log('\n\n\n\ndisplay recipes:');
-    console.log(displayRecipes);
-    console.log('\n\n\n\recipes:');
-    console.log(recipes);
     this.setState({ recipes: recipes, displayRecipes: displayRecipes, favoriteRecipes: favoriteRecipes });
 
   }
@@ -343,26 +319,8 @@ export default class Recipes extends React.Component {
     await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify(newRecipes));
   }
 
-  renderRecipe = () => {
-    const r = this.state.selectedRecipe;
-    return (
-      <View
-        style={{
-          backgroundColor: 'white',
-          padding: 16,
-          height: recipeHeight,
-        }}
-      >
-        <Recipe recipe={r} height={recipeHeight} editRecipe={this.editRecipe} deleteRecipe={this.deleteRecipe}/>
-      </View>);
-  }
-
   renderCreateRecipe = () => {
     return <CreateRecipeModal addRecipe={this.addRecipeModal} cancelPress={this.cancelCreatePress} generateId={this.generateId} />
-  }
-
-  renderEditRecipe = () => {
-    return <EditRecipeModal saveEditRecipe={this.saveEditRecipe} cancelEditPress={this.cancelEditPress} recipe={this.state.selectedRecipe} />
   }
 
   render() {
@@ -396,24 +354,9 @@ export default class Recipes extends React.Component {
           <Pressable
             style={styles.disabledView}
             onPress={() => {
-              this.sheetRef?.current?.snapTo(1);
               this.createRecipeRef?.current?.snapTo(1);
               this.setState({ disabled: false });
             }}
-          /> : null}
-        {this.state.showFullRecipe ?
-          <BottomSheet
-            ref={this.sheetRef}
-            snapPoints={[recipeHeight - 0, 0]}
-            borderRadius={20}
-            renderContent={this.renderRecipe}
-            initialSnap={1}
-            enabledBottomInitialAnimation={true}
-            onCloseStart={() => this.setState({ disabled: !this.state.showEditRecipe ? false : true })}
-            onCloseEnd={() => this.setState({ showFullRecipe: !this.state.showEditRecipe ? false : true })}
-            onOpenStart={() => this.setState({ disabled: true })}
-            onOpenEnd={() => this.setState({ disabled: true })}
-            renderHeader={() => (<View style={{ height: 40, alignItems: 'flex-end', justifyContent: 'flex-end' }}><View style={{ width: 80, justifyContent: 'flex-end', alignSelf: 'center', height: 6, borderRadius: 10, backgroundColor: '#000', marginBottom: 5 }}></View></View>)}
           /> : null}
         {this.state.showCreateRecipe ?
           <BottomSheet
@@ -423,21 +366,8 @@ export default class Recipes extends React.Component {
             renderContent={this.renderCreateRecipe}
             initialSnap={1}
             enabledBottomInitialAnimation={true}
-            onCloseStart={() => this.setState({ disabled: !this.state.showEditRecipe ? false : true })}
-            onCloseEnd={() => this.setState({ showCreateRecipe: false, disabled: !this.state.showEditRecipe ? false : true })}
-            onOpenStart={() => this.setState({ disabled: true })}
-            onOpenEnd={() => this.setState({ disabled: true })}
-            renderHeader={() => (<View style={{ width: 80, justifyContent: 'center', alignSelf: 'center', height: 6, borderRadius: 10, backgroundColor: '#000', marginBottom: 5 }}></View>)}
-          /> : null}
-        {this.state.showEditRecipe ?
-          <BottomSheet
-            ref={this.editRecipeRef}
-            snapPoints={[recipeHeight, 0]}
-            borderRadius={20}
-            renderContent={this.renderEditRecipe}
-            initialSnap={1}
-            enabledBottomInitialAnimation={true}
-            onCloseEnd={() => this.setState({ showEditRecipe: false })}
+            onCloseStart={() => this.setState({ disabled: false })}
+            onCloseEnd={() => this.setState({ showCreateRecipe: false, disabled: false })}
             onOpenStart={() => this.setState({ disabled: true })}
             onOpenEnd={() => this.setState({ disabled: true })}
             renderHeader={() => (<View style={{ width: 80, justifyContent: 'center', alignSelf: 'center', height: 6, borderRadius: 10, backgroundColor: '#000', marginBottom: 5 }}></View>)}

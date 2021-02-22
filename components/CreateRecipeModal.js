@@ -196,7 +196,7 @@ export default class CreateRecipeModal extends React.Component {
               />
             </View>
           </View>
-          <ScrollView>
+          <ScrollView bounces={true}>
             <Text style={{ marginTop: 5, marginBottom: 5, paddingHorizontal: 15, fontSize: 18, alignSelf: 'center', fontWeight: 'bold' }}>
               Recipe Name
           </Text>
