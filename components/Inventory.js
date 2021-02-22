@@ -26,9 +26,9 @@ export default class Inventory extends React.Component {
 
     return (
       <SafeAreaView>
-        <View>
-          <Text>
-            Hello Inventory
+        <View style={{alignContent: 'center', height: "100%", justifyContent: 'center'}}>
+          <Text style={{alignSelf: 'center', justifyContent: 'center', fontSize: 18}}>
+            Inventory coming soon
           </Text>
         </View>
       </SafeAreaView>

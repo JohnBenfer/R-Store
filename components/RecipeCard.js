@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     padding: 5,
     fontSize: 24,
     fontWeight: 'bold',
-    fontFamily: 'Avenir',
+    fontFamily: Platform.OS === 'ios' ? 'Avenir' : '',
     color: '#fff',
     zIndex: 1000,
     // position: 'absolute',
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     padding: 5,
     fontSize: 24,
     fontWeight: 'bold',
-    fontFamily: 'Avenir',
+    fontFamily: Platform.OS === 'ios' ? 'Avenir' : '',
     color: '#000',
     zIndex: 100,
     marginTop: 5,
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
 // props: recipe, y, index
 // recipe: title, description, id
 const RecipeCard = (props) => {
-  const { recipe, index, selected, selectedIndex, y } = props;
+  const { recipe, index, selected, y } = props;
   const position = Animated.subtract(index * CARD_HEIGHT, y);
   const isDisappearing = -CARD_HEIGHT;
   const isTop = 0;

@@ -88,7 +88,7 @@ export default class CreateRecipeModal extends React.Component {
       console.log('error reading recipes file');
     });
     const newRecipe = {
-      id: this.props.generateId(),
+      id: this.props.route.params.generateId(),
       title: title,
       description: description,
       ingredients: ingredients,
@@ -102,9 +102,9 @@ export default class CreateRecipeModal extends React.Component {
       ]
     };
     await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify(newRecipes));
-    FileSystem.readAsStringAsync(RecipesPath).then((res) => {
-    });
-    this.props.addRecipe(newRecipe);
+
+    this.props.route.params.addRecipe(newRecipe);
+    this.props.navigation.goBack();
   }
 
   addIngredient = () => {
@@ -171,6 +171,10 @@ export default class CreateRecipeModal extends React.Component {
     return blank;
   }
 
+  cancelPress = () => {
+    this.props.navigation.goBack();
+  }
+
   render() {
     const { images, title, ingredients, directions, description, titleError, descriptionError } = this.state;
     return (
@@ -179,7 +183,7 @@ export default class CreateRecipeModal extends React.Component {
           <View style={[styles.row, { marginBottom: 15, marginTop: 10 }]}>
             <View style={styles.cancelButtonContainer}>
               <Button
-                onPress={() => this.props.cancelPress()}
+                onPress={this.cancelPress}
                 title="Cancel"
                 type="clear"
                 titleStyle={styles.cancelButtonTitle}
@@ -207,9 +211,9 @@ export default class CreateRecipeModal extends React.Component {
                 onChangeText={(text) => this.changeTitle(text)}
                 value={this.state.title}
               />
-              {titleError ? 
-              <Text style={{color: 'red'}}>
-                Title is too long
+              {titleError ?
+                <Text style={{ color: 'red' }}>
+                  Title is too long
               </Text> : null}
             </View>
             <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>

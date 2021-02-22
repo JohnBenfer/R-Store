@@ -106,8 +106,8 @@ export default class Recipes extends React.Component {
     let { recipes, displayRecipes } = this.state;
     recipes.unshift(recipe);
     // displayRecipes.push(recipe);
-    setTimeout(() => this.flatListRef.current.scrollToIndex({ index: 0 }), 150);
-    this.setState({ recipes: recipes });
+    this.setState({ recipes: recipes, displayRecipes: this.sortRecipes(recipes, this.state.favoriteRecipes) });
+    setTimeout(() => this.flatListRef.current.scrollToIndex({ index: this.state.favoriteRecipes.length, viewPosition: 0.5 }), 500);
   }
 
   addRecipeModal = (recipe) => {
@@ -137,8 +137,13 @@ export default class Recipes extends React.Component {
   }
 
   createRecipeModal = () => {
-    setTimeout(() => this.createRecipeRef.current.snapTo(0), 50);
-    this.setState({ showCreateRecipe: true });
+    if (Platform.OS === 'ios') {
+      setTimeout(() => this.createRecipeRef.current.snapTo(0), 50);
+      this.setState({ showCreateRecipe: true });
+    } else {
+      this.props.navigation.push("CreateRecipe", { generateId: this.generateId, addRecipe: this.addRecipe, });
+    }
+
   }
 
   cancelCreatePress = () => {
@@ -178,7 +183,7 @@ export default class Recipes extends React.Component {
     displayRecipes[oldDisplayRecipeIndex].images = newRecipe.images;
 
     displayRecipes = this.sortRecipes(displayRecipes, favoriteRecipes);
-    this.setState({ recipes: recipes, displayRecipes: displayRecipes});
+    this.setState({ recipes: recipes, displayRecipes: displayRecipes });
     const newRecipes = {
       recipes: recipes
     };
@@ -257,7 +262,7 @@ export default class Recipes extends React.Component {
   }
 
   deleteRecipe = async (recipe) => {
-    let {recipes, displayRecipes, favoriteRecipes} = this.state;
+    let { recipes, displayRecipes, favoriteRecipes } = this.state;
     console.log('recipe delete');
     console.log(recipe.title);
 
@@ -329,24 +334,6 @@ export default class Recipes extends React.Component {
 
     const onScroll = Animated.event([{ nativeEvent: { contentOffset: { y: this.y } } }], {
       useNativeDriver: true,
-      listener: (e) => {
-        const oldIndex = this.state.selectedIndex;
-        let currentY = e.nativeEvent.contentOffset.y;
-        if (currentY > oldY) {
-          // scrolling down
-          selectedIndex = Math.ceil(currentY / CARD_HEIGHT) + 1;
-          if (selectedIndex !== oldIndex) {
-            this.setState({ selectedIndex: selectedIndex });
-          }
-        } else {
-          // scrolling up
-          selectedIndex = Math.floor(currentY / CARD_HEIGHT) + 1;
-          if (selectedIndex !== oldIndex) {
-            this.setState({ selectedIndex: selectedIndex });
-          }
-        }
-        oldY = currentY;
-      }
     });
     return (
       <SafeAreaView>
@@ -404,7 +391,6 @@ export default class Recipes extends React.Component {
                 index={index}
                 y={this.y}
                 recipe={item}
-                selectedIndex={this.state.selectedIndex}
                 selected={item.id === this.state.selectedRecipe?.id}
                 handleRecipePress={this.handleRecipePress}
                 handleRecipeLongPress={this.handleRecipeLongPress}

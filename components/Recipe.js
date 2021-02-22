@@ -132,7 +132,7 @@ export default class Inventory extends React.Component {
       this.editRecipeRef?.current?.snapTo(1);
       setTimeout(() => this.setState({ showEditRecipe: false }), 150);
     }, 250);
-    
+
     this.props.route.params.saveEditRecipe(recipe);
   }
 
@@ -220,7 +220,7 @@ export default class Inventory extends React.Component {
                 /> :
                 null}
             </View>
-            <View style={{ position: 'absolute', right: 0, bottom: 0, marginBottom: 0, marginRight: 5 }}>
+            <View style={{ position: 'absolute', right: 0, bottom: 0, marginBottom: 0, marginRight: 5, zIndex: 1000 }}>
               <View style={{ borderRadius: 20, overflow: 'hidden' }}>
                 <Tooltip
                   ref={this.toolTipRef}
@@ -255,7 +255,7 @@ export default class Inventory extends React.Component {
                 color="#fff"
                 reverse
                 reverseColor="#000"
-                onPress={() => this.toolTipRef.current.toggleTooltip()}
+                onPress={() => { this.toolTipRef.current.toggleTooltip(); console.log('pressed') }}
               />
             </View>
           </View>
