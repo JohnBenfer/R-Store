@@ -78,6 +78,9 @@ export default class CreateRecipeModal extends React.Component {
 
   saveRecipe = async () => {
     const { title, description, ingredients, directions, images, titleError, descriptionError } = this.state;
+    const finalIngredients = ingredients.filter((ingredient) => ingredient.title.trim().length !== 0);
+    const finalDirections = directions.filter((direction) => direction.trim().length !== 0);
+    
     if (titleError || descriptionError) {
       return;
     }
@@ -89,10 +92,10 @@ export default class CreateRecipeModal extends React.Component {
     });
     const newRecipe = {
       id: this.props.route.params.generateId(),
-      title: title,
-      description: description,
-      ingredients: ingredients,
-      directions: directions,
+      title: title.trim(),
+      description: description.trim(),
+      ingredients: finalIngredients,
+      directions: finalDirections,
       images: images,
     }
     const newRecipes = {

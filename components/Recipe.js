@@ -255,7 +255,7 @@ export default class Inventory extends React.Component {
                 color="#fff"
                 reverse
                 reverseColor="#000"
-                onPress={() => { this.toolTipRef.current.toggleTooltip(); console.log('pressed') }}
+                onPress={() => { this.toolTipRef.current.toggleTooltip() }}
               />
             </View>
           </View>

@@ -115,7 +115,9 @@ export default class Recipes extends React.Component {
     recipes.unshift(recipe);
     // displayRecipes.push(recipe);
     setTimeout(() => this.flatListRef.current.scrollToIndex({ index: this.state.favoriteRecipes.length, viewPosition: 0.5 }), 150);
-    this.setState({ recipes: recipes, displayRecipes: this.sortRecipes(recipes, this.state.favoriteRecipes) });
+    const sortedRecipes = this.sortRecipes(recipes, this.state.favoriteRecipes);
+    console.log(sortedRecipes);
+    this.setState({ recipes: recipes, displayRecipes: sortedRecipes });
     this.createRecipeRef.current.snapTo(1);
   }
 
