@@ -2,6 +2,8 @@ import React from 'react';
 import PropTypes from 'react';
 import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Image, ImageBackground, LayoutAnimation, TextInput } from 'react-native';
 import { Input, Button, Overlay, Text, Icon } from 'react-native-elements';
+import EditIngredients from './EditIngredients';
+import EditDirections from './EditDirections';
 import * as ImagePicker from 'expo-image-picker';
 import { Dimensions } from 'react-native';
 import { Pressable } from 'react-native';
@@ -23,8 +25,10 @@ export default class CreateRecipeModal extends React.Component {
       images: [],
       title: '',
       description: '',
-      ingredients: [{ title: '' }, { title: '' }],
-      directions: ['', ''],
+      ingredients: [{ title: '', groupId: 0 }, { title: '', groupId: 0 }],
+      ingredientGroups: [{ id: 0, title: '' }],
+      directions: [{ title: '', groupId: 0 }, { title: '', groupId: 0 }],
+      directionGroups: [{ id: 0, title: '' }],
       titleError: false,
       descriptionError: false,
     };
@@ -79,7 +83,7 @@ export default class CreateRecipeModal extends React.Component {
   saveRecipe = async () => {
     const { title, description, ingredients, directions, images, titleError, descriptionError } = this.state;
     const finalIngredients = ingredients.filter((ingredient) => ingredient.title.trim().length !== 0);
-    const finalDirections = directions.filter((direction) => direction.trim().length !== 0);
+    const finalDirections = directions.filter((direction) => direction.title.trim().length !== 0);
 
     if (titleError || descriptionError) {
       return;
@@ -110,40 +114,48 @@ export default class CreateRecipeModal extends React.Component {
     this.props.addRecipe(newRecipe);
   }
 
-  addIngredient = () => {
-    const { ingredients } = this.state;
-    ingredients.push({ title: '' });
-    this.setState({ ingredients });
+  // addIngredient = (groupId) => {
+  //   const { ingredients } = this.state;
+  //   ingredients.push({ title: '', groupId: groupId });
+  //   this.setState({ ingredients });
+  // }
+
+  // removeIngredient = (index) => {
+  //   const { ingredients } = this.state;
+  //   ingredients.splice(index, 1);
+  //   this.setState({ ingredients });
+  // }
+
+  // handleIngredientChange = (text, index) => {
+  //   let { ingredients } = this.state;
+  //   ingredients[index].title = text;
+  //   this.setState({ ingredients });
+  // }
+
+  // addDirection = (groupId) => {
+  //   const { directions } = this.state;
+  //   directions.push({ title: '', groupId: groupId });
+  //   this.setState({ directions });
+  // }
+
+  // removeDirection = (index) => {
+  //   const { directions } = this.state;
+  //   directions.splice(index, 1);
+  //   this.setState({ directions });
+  // }
+
+  // handleDirectionChange = (text, index) => {
+  //   let { directions } = this.state;
+  //   directions[index].title = text;
+  //   this.setState({ directions });
+  // }
+
+  changeDirections = (directions) => {
+    this.setState({ directions: directions });
   }
 
-  removeIngredient = (index) => {
-    const { ingredients } = this.state;
-    ingredients.splice(index, 1);
-    this.setState({ ingredients });
-  }
-
-  handleIngredientChange = (text, index) => {
-    let { ingredients } = this.state;
-    ingredients[index].title = text;
-    this.setState({ ingredients });
-  }
-
-  addDirection = () => {
-    const { directions } = this.state;
-    directions.push('');
-    this.setState({ directions });
-  }
-
-  removeDirection = (index) => {
-    const { directions } = this.state;
-    directions.splice(index, 1);
-    this.setState({ directions });
-  }
-
-  handleDirectionChange = (text, index) => {
-    let { directions } = this.state;
-    directions[index] = text;
-    this.setState({ directions });
+  changeIngredients = (ingredients) => {
+    this.setState({ ingredients: ingredients });
   }
 
   changeTitle = (text) => {
@@ -166,13 +178,76 @@ export default class CreateRecipeModal extends React.Component {
 
   allDirectionsBlank = (directions) => {
     let blank = true;
-    directions.forEach(item => {
-      if (item.trim().length > 0) {
+    directions.forEach(direction => {
+      if (direction.title.trim().length > 0) {
         blank = false;
       }
     });
     return blank;
   }
+
+  // renderIngredients = () => {
+  //   const { ingredients } = this.state;
+  //   return (
+  //     <View>
+  //       {
+  //         ingredients.map((ingredient, index) => (
+  //           <View key={index} style={[styles.row, { marginHorizontal: 15 }]}>
+  //             <TextInput
+  //               style={[styles.textInput, { width: '90%', fontSize: 14, marginBottom: 7 }]}
+  //               onChangeText={(text) => this.handleIngredientChange(text, index)}
+  //               value={ingredient.title}
+  //               onSubmitEditing={() => {
+  //                 // index+1 === ingredients.length && this.addIngredient();
+  //               }}
+  //               key={index}
+  //             />
+  //             {index > 0 || ingredients.length > 1 ? (
+  //               <View style={{ marginTop: 6, marginLeft: 8 }}>
+  //                 <Pressable onPress={() => this.removeIngredient(index)} hitSlop={10}>
+  //                   <Icon name='md-close' type='ionicon' size={15} color='#000' />
+  //                 </Pressable>
+  //               </View>
+  //             ) : null}
+  //           </View>
+  //         ))
+  //       }
+  //     </View>
+  //   );
+  // }
+
+  // renderDirections = () => {
+  //   const { directions } = this.state;
+  //   return (
+  //     <View>
+  //       {directions.map((direction, index) => (
+  //         <View key={index} style={[styles.row, { marginHorizontal: 15 }]}>
+  //           <View style={{ width: 20 }}>
+  //             <Text style={{ marginTop: 5 }}>
+  //               {`${index + 1}.`}
+  //             </Text>
+  //           </View>
+  //           <TextInput
+  //             style={{ width: Dimensions.get("window").width * 0.9 - 45, backgroundColor: '#dbdbdb', borderRadius: 5, padding: 5, paddingHorizontal: 7, fontSize: 14, marginBottom: 7 }}
+  //             onChangeText={(text) => this.handleDirectionChange(text, index)}
+  //             value={direction}
+  //             onSubmitEditing={() => {
+  //               index + 1 === ingredients.length && this.addDirection();
+  //             }}
+  //             key={index}
+  //           />
+  //           {index > 0 || directions.length > 1 ? (
+  //             <View style={{ marginTop: 6, marginLeft: 8 }}>
+  //               <Pressable onPress={() => this.removeDirection(index)} hitSlop={10}>
+  //                 <Icon name='md-close' type='ionicon' size={15} color='#000' />
+  //               </Pressable>
+  //             </View>
+  //           ) : null}
+  //         </View>
+  //       ))}
+  //     </View>
+  //   );
+  // }
 
   render() {
     const { images, title, ingredients, directions, description, titleError, descriptionError } = this.state;
@@ -202,7 +277,7 @@ export default class CreateRecipeModal extends React.Component {
           <ScrollView bounces={true}>
             <Text style={{ marginTop: 5, marginBottom: 5, paddingHorizontal: 15, fontSize: 18, alignSelf: 'center', fontWeight: 'bold' }}>
               Recipe Name
-          </Text>
+            </Text>
             <View style={{ marginHorizontal: 15 }}>
               <TextInput
                 style={[styles.textInput, { width: '100%', fontSize: 16 }]}
@@ -210,14 +285,14 @@ export default class CreateRecipeModal extends React.Component {
                 onChangeText={(text) => this.changeTitle(text)}
                 value={this.state.title}
               />
-              {titleError ? 
-              <Text style={{color: 'red'}}>
-                Title is too long
+              {titleError ?
+                <Text style={{ color: 'red' }}>
+                  Title is too long
               </Text> : null}
             </View>
             <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
               Description
-          </Text>
+            </Text>
             <View style={{ marginHorizontal: 15 }}>
               <TextInput
                 style={[styles.textInput, { width: '100%', fontSize: 14 }]}
@@ -226,77 +301,12 @@ export default class CreateRecipeModal extends React.Component {
             </View>
             <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
               Ingredients
-          </Text>
-            {ingredients.map((ingredient, index) => (
-              <View key={index} style={[styles.row, { marginHorizontal: 15 }]}>
-                <TextInput
-                  style={[styles.textInput, { width: '90%', fontSize: 14, marginBottom: 7 }]}
-                  onChangeText={(text) => this.handleIngredientChange(text, index)}
-                  value={ingredient.title}
-                  onSubmitEditing={() => {
-                    // index+1 === ingredients.length && this.addIngredient();
-                  }}
-                  key={index}
-                />
-                {index > 0 || ingredients.length > 1 ? (
-                  <View style={{ marginTop: 6, marginLeft: 8 }}>
-                    <Pressable onPress={() => this.removeIngredient(index)} hitSlop={10}>
-                      <Icon name='md-close' type='ionicon' size={15} color='#000' />
-                    </Pressable>
-                  </View>
-                ) : null}
-              </View>
-            ))}
-            <Pressable onPress={this.addIngredient} hitSlop={5} style={{ alignSelf: 'center' }}>
-              <Icon
-                reverse
-                size={15}
-                name="md-add"
-                type="ionicon"
-                color='#2e7dd1'
-                onPress={this.addIngredient}
-              />
-            </Pressable>
-
-
+            </Text>
+            <EditIngredients ingredients={ingredients} changeIngredients={this.changeIngredients}/>
             <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
               Directions
-          </Text>
-            {directions.map((direction, index) => (
-              <View key={index} style={[styles.row, { marginHorizontal: 15 }]}>
-                <View style={{ width: 20 }}>
-                  <Text style={{ marginTop: 5 }}>
-                    {`${index + 1}.`}
-                  </Text>
-                </View>
-                <TextInput
-                  style={{ width: Dimensions.get("window").width * 0.9 - 45, backgroundColor: '#dbdbdb', borderRadius: 5, padding: 5, paddingHorizontal: 7, fontSize: 14, marginBottom: 7 }}
-                  onChangeText={(text) => this.handleDirectionChange(text, index)}
-                  value={direction}
-                  onSubmitEditing={() => {
-                    index + 1 === ingredients.length && this.addDirection();
-                  }}
-                  key={index}
-                />
-                {index > 0 || directions.length > 1 ? (
-                  <View style={{ marginTop: 6, marginLeft: 8 }}>
-                    <Pressable onPress={() => this.removeDirection(index)} hitSlop={10}>
-                      <Icon name='md-close' type='ionicon' size={15} color='#000' />
-                    </Pressable>
-                  </View>
-                ) : null}
-              </View>
-            ))}
-            <Pressable onPress={this.addDirection} hitSlop={5} style={{ alignSelf: 'center' }}>
-              <Icon
-                reverse
-                size={15}
-                name="md-add"
-                type="ionicon"
-                color='#2e7dd1'
-                onPress={this.addDirection}
-              />
-            </Pressable>
+            </Text>
+            <EditDirections directions={directions} changeDirections={this.changeDirections}/>
 
             <View style={[styles.row, styles.photoRow]}>
               <View style={{ marginTop: 0, width: '15%', justifyContent: 'center' }}>

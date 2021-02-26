@@ -68,16 +68,38 @@ export default class Recipes extends React.Component {
     });
   }
 
-  getRecipes = () => {
+  getRecipes = async () => {
     let favoriteRecipes = [];
-    FileSystem.readAsStringAsync(RecipesPath).then((res) => {
+    FileSystem.readAsStringAsync(RecipesPath).then(async (res) => {
       let r = JSON.parse(res).recipes.reverse();
-      r.forEach((recipe) => {
+      const newRecipes = await this.fixDirections(r);
+      newRecipes.forEach((recipe) => {
         recipe.favorite ? favoriteRecipes.push(recipe) : null;
       });
-      this.setState({ recipes: r, displayRecipes: this.sortRecipes(r, favoriteRecipes), favoriteRecipes: favoriteRecipes });
+      
+      this.setState({ recipes: newRecipes, displayRecipes: this.sortRecipes(newRecipes, favoriteRecipes), favoriteRecipes: favoriteRecipes });
       // this.assignIds(r);
+      
     });
+  }
+
+  fixDirections = async (recipes) => {
+    if (!recipes[0].directions[0].title) {
+      let newRecipes = [];
+      recipes.forEach((recipe) => {
+        let newDirections = [];
+        recipe.directions.forEach((direction) => {
+          newDirections.push({ title: direction, groupId: 0 });
+        });
+        recipe.directions = newDirections;
+        newRecipes.push(recipe);
+      });
+      await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify({ recipes: newRecipes }));
+      console.log(newRecipes);
+      return newRecipes;
+    } else {
+      return recipes;
+    }
   }
 
   assignIds = async (recipes) => {
@@ -116,7 +138,6 @@ export default class Recipes extends React.Component {
     // displayRecipes.push(recipe);
     setTimeout(() => this.flatListRef.current.scrollToIndex({ index: this.state.favoriteRecipes.length, viewPosition: 0.5 }), 150);
     const sortedRecipes = this.sortRecipes(recipes, this.state.favoriteRecipes);
-    console.log(sortedRecipes);
     this.setState({ recipes: recipes, displayRecipes: sortedRecipes });
     this.createRecipeRef.current.snapTo(1);
   }

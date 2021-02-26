@@ -2,6 +2,8 @@ import React from 'react';
 import PropTypes from 'react';
 import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Image, ImageBackground, LayoutAnimation, TextInput } from 'react-native';
 import { Input, Button, Overlay, Text, Icon } from 'react-native-elements';
+import EditIngredients from './EditIngredients';
+import EditDirections from './EditDirections';
 import * as ImagePicker from 'expo-image-picker';
 import { Dimensions } from 'react-native';
 import { Pressable } from 'react-native';
@@ -93,41 +95,41 @@ export default class EditRecipeModal extends React.Component {
     this.props.saveEditRecipe(newRecipe);
   }
 
-  addIngredient = () => {
-    const { ingredients } = this.state;
-    ingredients.push({ title: '' });
-    this.setState({ ingredients });
-  }
+  // addIngredient = () => {
+  //   const { ingredients } = this.state;
+  //   ingredients.push({ title: '' });
+  //   this.setState({ ingredients });
+  // }
 
-  removeIngredient = (index) => {
-    const { ingredients } = this.state;
-    ingredients.splice(index, 1);
-    this.setState({ ingredients });
-  }
+  // removeIngredient = (index) => {
+  //   const { ingredients } = this.state;
+  //   ingredients.splice(index, 1);
+  //   this.setState({ ingredients });
+  // }
 
-  handleIngredientChange = (text, index) => {
-    let { ingredients } = this.state;
-    ingredients[index].title = text;
-    this.setState({ ingredients, ingredientsChanged: true });
-  }
+  // handleIngredientChange = (text, index) => {
+  //   let { ingredients } = this.state;
+  //   ingredients[index].title = text;
+  //   this.setState({ ingredients, ingredientsChanged: true });
+  // }
 
-  addDirection = () => {
-    const { directions } = this.state;
-    directions.push('');
-    this.setState({ directions });
-  }
+  // addDirection = () => {
+  //   const { directions } = this.state;
+  //   directions.push({title: '', groupId: 0});
+  //   this.setState({ directions });
+  // }
 
-  removeDirection = (index) => {
-    const { directions } = this.state;
-    directions.splice(index, 1);
-    this.setState({ directions });
-  }
+  // removeDirection = (index) => {
+  //   const { directions } = this.state;
+  //   directions.splice(index, 1);
+  //   this.setState({ directions });
+  // }
 
-  handleDirectionChange = (text, index) => {
-    let { directions } = this.state;
-    directions[index] = text;
-    this.setState({ directions, directionsChanged: true });
-  }
+  // handleDirectionChange = (text, index) => {
+  //   let { directions } = this.state;
+  //   directions[index].title = text;
+  //   this.setState({ directions, directionsChanged: true });
+  // }
 
   changeTitle = (text) => {
     if (text.length < 40) {
@@ -150,7 +152,7 @@ export default class EditRecipeModal extends React.Component {
   allDirectionsBlank = (directions) => {
     let blank = true;
     directions.forEach(item => {
-      if (item.trim().length > 0) {
+      if (item.title.trim().length > 0) {
         blank = false;
       }
     });
@@ -225,76 +227,11 @@ export default class EditRecipeModal extends React.Component {
             <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
               Ingredients
           </Text>
-            {ingredients?.map((ingredient, index) => (
-              <View key={index} style={[styles.row, { marginHorizontal: 15 }]}>
-                <TextInput
-                  style={[styles.textInput, { width: '90%', fontSize: 14, marginBottom: 7 }]}
-                  onChangeText={(text) => this.handleIngredientChange(text, index)}
-                  value={ingredient.title}
-                  onSubmitEditing={() => {
-                    // index+1 === ingredients.length && this.addIngredient();
-                  }}
-                  key={index}
-                />
-                {index > 0 || ingredients.length > 1 ? (
-                  <View style={{ marginTop: 6, marginLeft: 8 }}>
-                    <Pressable onPress={() => this.removeIngredient(index)} hitSlop={10}>
-                      <Icon name='md-close' type='ionicon' size={15} color='#000' />
-                    </Pressable>
-                  </View>
-                ) : null}
-              </View>
-            ))}
-            <Pressable onPress={this.addIngredient} hitSlop={5} style={{ alignSelf: 'center' }}>
-              <Icon
-                reverse
-                size={15}
-                name="md-add"
-                type="ionicon"
-                color='#2e7dd1'
-                onPress={this.addIngredient}
-              />
-            </Pressable>
-
-
+            <EditIngredients ingredients={ingredients} changeIngredients={(ingredients) => this.setState({ingredients: ingredients, ingredientsChanged: true})}/>
             <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
               Directions
           </Text>
-            {directions?.map((direction, index) => (
-              <View key={index} style={[styles.row, { marginHorizontal: 15 }]}>
-                <View style={{ width: 20 }}>
-                  <Text style={{ marginTop: 5 }}>
-                    {`${index + 1}.`}
-                  </Text>
-                </View>
-                <TextInput
-                  style={{ width: Dimensions.get("window").width * 0.9 - 45, backgroundColor: '#dbdbdb', borderRadius: 5, padding: 5, paddingHorizontal: 7, fontSize: 14, marginBottom: 7 }}
-                  onChangeText={(text) => this.handleDirectionChange(text, index)}
-                  value={direction}
-                  onSubmitEditing={() => {
-                    index + 1 === ingredients.length && this.addDirection();
-                  }}
-                  key={index}
-                />
-                {index > 0 || directions.length > 1 ? (
-                  <View style={{ marginTop: 6, marginLeft: 8 }}>
-                    <Pressable onPress={() => this.removeDirection(index)} hitSlop={10}>
-                      <Icon name='md-close' type='ionicon' size={15} color='#000' />
-                    </Pressable>
-                  </View>
-                ) : null}
-              </View>
-            ))}
-            <Pressable onPress={this.addDirection} hitSlop={5} style={{ alignSelf: 'center' }}>
-              <Icon
-                reverse
-                size={15}
-                name="md-add"
-                type="ionicon"
-                color='#2e7dd1'
-                onPress={this.addDirection}
-              />
-            </Pressable>
+            <EditDirections directions={directions} changeDirections={(directions) => this.setState({directions: directions, directionsChanged: true})} />
 
             <View style={[styles.row, styles.photoRow]}>
               <View style={{ marginTop: 0, width: '15%', justifyContent: 'center' }}>

@@ -4,6 +4,8 @@ import { Input, Button, Overlay, Text, Icon, Tooltip } from 'react-native-elemen
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import EditRecipeModal from './EditRecipeModal';
+import Ingredients from './Ingredients';
+import Directions from './Directions';
 import BottomSheet from 'reanimated-bottom-sheet';
 import Constants from 'expo-constants';
 
@@ -35,94 +37,94 @@ export default class Inventory extends React.Component {
     const { recipe } = this.props.route.params;
   }
 
-  ingredientChecked = (index) => {
-    const { checkedIngredients } = this.state;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    checkedIngredients.push(index);
-    this.setState({ checkedIngredients: checkedIngredients });
-  }
+  // ingredientChecked = (index) => {
+  //   const { checkedIngredients } = this.state;
+  //   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  //   checkedIngredients.push(index);
+  //   this.setState({ checkedIngredients: checkedIngredients });
+  // }
 
-  ingredientUnchecked = (index) => {
-    const { checkedIngredients } = this.state;
-    checkedIngredients.splice(checkedIngredients.indexOf(index), 1);
-    this.setState({ checkedIngredients: checkedIngredients });
-  }
+  // ingredientUnchecked = (index) => {
+  //   const { checkedIngredients } = this.state;
+  //   checkedIngredients.splice(checkedIngredients.indexOf(index), 1);
+  //   this.setState({ checkedIngredients: checkedIngredients });
+  // }
 
-  directionChecked = (index) => {
-    const { checkedDirections } = this.state;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    checkedDirections.push(index);
-    this.setState({ checkedDirections: checkedDirections });
-  }
+  // directionChecked = (index) => {
+  //   const { checkedDirections } = this.state;
+  //   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  //   checkedDirections.push(index);
+  //   this.setState({ checkedDirections: checkedDirections });
+  // }
 
-  directionUnchecked = (index) => {
-    const { checkedDirections } = this.state;
-    checkedDirections.splice(checkedDirections.indexOf(index), 1);
-    this.setState({ checkedDirections: checkedDirections });
-  }
+  // directionUnchecked = (index) => {
+  //   const { checkedDirections } = this.state;
+  //   checkedDirections.splice(checkedDirections.indexOf(index), 1);
+  //   this.setState({ checkedDirections: checkedDirections });
+  // }
 
-  renderIngredients() {
-    const { recipe } = this.props.route.params;
-    let ingredients = [];
-    recipe.ingredients.forEach((ingredient, i) => {
-      let checked = this.state.checkedIngredients.includes(i);
-      ingredients.push(
-        <View key={i}>
-          <View style={{ borderBottomWidth: 1, borderColor: '#cccccc', }} />
-          <View style={{ flexDirection: 'row', marginVertical: 9, paddingHorizontal: 15, }}>
-            <Text key={i} style={{ fontSize: 16, color: !checked ? '#000' : '#7d7d7d' }}>
-              {ingredient.title}
-            </Text>
-            <View style={{ position: 'absolute', right: 0, marginRight: 10, alignSelf: 'center' }}>
-              {!this.state.checkedIngredients.includes(i) ?
-                (<Pressable onPress={() => this.ingredientChecked(i)} hitSlop={7}>
-                  <Icon name='circle-thin' type='font-awesome' size={20} color='#6b6b6b' onPress={() => { this.ingredientChecked(i) }} />
-                </Pressable>) :
-                (<Pressable onPress={() => this.ingredientUnchecked(i)} hitSlop={7}>
-                  <Icon name='check' type='ant-design' size={20} color='#42c930' onPress={() => { this.ingredientUnchecked(i) }} />
-                </Pressable>)}
-            </View>
-          </View>
-        </View>);
-    });
-    ingredients.push(
-      <View key={12345} style={{ borderBottomWidth: 1, borderColor: '#cccccc' }} />
-    )
-    return ingredients;
-  }
+  // renderIngredients() {
+  //   const { recipe } = this.props.route.params;
+  //   let ingredients = [];
+  //   recipe.ingredients.forEach((ingredient, i) => {
+  //     let checked = this.state.checkedIngredients.includes(i);
+  //     ingredients.push(
+  //       <View key={i}>
+  //         <View style={{ borderBottomWidth: 1, borderColor: '#cccccc', }} />
+  //         <View style={{ flexDirection: 'row', marginVertical: 9, paddingHorizontal: 15, }}>
+  //           <Text key={i} style={{ fontSize: 16, color: !checked ? '#000' : '#7d7d7d' }}>
+  //             {ingredient.title}
+  //           </Text>
+  //           <View style={{ position: 'absolute', right: 0, marginRight: 10, alignSelf: 'center' }}>
+  //             {!this.state.checkedIngredients.includes(i) ?
+  //               (<Pressable onPress={() => this.ingredientChecked(i)} hitSlop={7}>
+  //                 <Icon name='circle-thin' type='font-awesome' size={20} color='#6b6b6b' onPress={() => { this.ingredientChecked(i) }} />
+  //               </Pressable>) :
+  //               (<Pressable onPress={() => this.ingredientUnchecked(i)} hitSlop={7}>
+  //                 <Icon name='check' type='ant-design' size={20} color='#42c930' onPress={() => { this.ingredientUnchecked(i) }} />
+  //               </Pressable>)}
+  //           </View>
+  //         </View>
+  //       </View>);
+  //   });
+  //   ingredients.push(
+  //     <View key={12345} style={{ borderBottomWidth: 1, borderColor: '#cccccc' }} />
+  //   )
+  //   return ingredients;
+  // }
 
-  renderDirections() {
-    const { recipe } = this.props.route.params;
-    let directions = [];
-    recipe.directions.forEach((direction, index) => {
-      let checked = this.state.checkedDirections.includes(index);
-      directions.push(
-        <View key={index} style={{ backgroundColor: !checked ? '#e6e6e6' : '#f0f0f0', borderRadius: 10, marginVertical: 6, marginHorizontal: 10 }}>
-          <View style={{ marginVertical: 8, marginLeft: 6, flexDirection: 'row' }}>
-            <Text key={index} style={{ fontSize: 16, paddingRight: 35, color: !checked ? '#000' : '#737373' }}>
-              {`${index + 1}. ${direction}`}
-            </Text>
-            <View style={{ position: 'absolute', right: 0, marginRight: 10, alignSelf: 'center' }}>
-              {!checked ?
-                (<Pressable onPress={() => this.directionChecked(index)} hitSlop={10}>
-                  <Icon name='circle-thin' type='font-awesome' size={20} color='#6b6b6b' onPress={() => { this.directionChecked(index) }} />
-                </Pressable>) :
-                (<Pressable onPress={() => this.directionUnchecked(index)} hitSlop={10}>
-                  <Icon name='check' type='ant-design' size={20} color='#42c930' onPress={() => { this.directionUnchecked(index) }} />
-                </Pressable>)}
-            </View>
-          </View>
-        </View>);
-    });
-    return directions;
-  }
+  // renderDirections() {
+  //   const { recipe } = this.props.route.params;
+  //   let directions = [];
+  //   recipe.directions.forEach((direction, index) => {
+  //     let checked = this.state.checkedDirections.includes(index);
+  //     directions.push(
+  //       <View key={index} style={{ backgroundColor: !checked ? '#e6e6e6' : '#f0f0f0', borderRadius: 10, marginVertical: 6, marginHorizontal: 10 }}>
+  //         <View style={{ marginVertical: 8, marginLeft: 6, flexDirection: 'row' }}>
+  //           <Text key={index} style={{ fontSize: 16, paddingRight: 35, color: !checked ? '#000' : '#737373' }}>
+  //             {`${index + 1}. ${direction.title}`}
+  //           </Text>
+  //           <View style={{ position: 'absolute', right: 0, marginRight: 10, alignSelf: 'center' }}>
+  //             {!checked ?
+  //               (<Pressable onPress={() => this.directionChecked(index)} hitSlop={10}>
+  //                 <Icon name='circle-thin' type='font-awesome' size={20} color='#6b6b6b' onPress={() => { this.directionChecked(index) }} />
+  //               </Pressable>) :
+  //               (<Pressable onPress={() => this.directionUnchecked(index)} hitSlop={10}>
+  //                 <Icon name='check' type='ant-design' size={20} color='#42c930' onPress={() => { this.directionUnchecked(index) }} />
+  //               </Pressable>)}
+  //           </View>
+  //         </View>
+  //       </View>);
+  //   });
+  //   return directions;
+  // }
 
   renderEditRecipe = () => {
     return <EditRecipeModal saveEditRecipe={this.saveEditRecipe} cancelEditPress={this.cancelEditPress} recipe={this.props.route.params.recipe} />
   }
 
   cancelEditPress = () => {
-    setTimeout(() => this.editRecipeRef.current.snapTo(1), 10);
+    setTimeout(() => this.editRecipeRef?.current?.snapTo(1), 10);
     this.setState({ showEditRecipe: false });
   }
 
@@ -267,11 +269,11 @@ export default class Inventory extends React.Component {
             <Text style={[styles.subtitle, { marginBottom: 7 }]}>
               Ingredients
             </Text>
-            {this.renderIngredients()}
+            <Ingredients ingredients={recipe.ingredients} />
             <Text style={[styles.subtitle, { marginTop: 20 }]}>
               Directions
             </Text>
-            {this.renderDirections()}
+            <Directions directions={recipe.directions} />
             <View style={{ height: 70 }}>
             </View>
           </View>
