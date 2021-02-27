@@ -13,6 +13,7 @@ const SINGLE_LINE_HEIGHT = 38;
 let titleOverflow = false;
 const width = Dimensions.get("window").width;
 const recipeHeight = Dimensions.get("window").height - Constants.statusBarHeight - 130;
+let oldX = 0;
 
 export default class Inventory extends React.Component {
   toolTipRef = React.createRef();
@@ -27,6 +28,7 @@ export default class Inventory extends React.Component {
       titleOverflow: false,
       viewMarginTop: 15,
       showEditRecipe: false,
+      selectedImageIndex: 0,
     };
   }
 
@@ -36,88 +38,6 @@ export default class Inventory extends React.Component {
   componentDidMount() {
     const { recipe } = this.props.route.params;
   }
-
-  // ingredientChecked = (index) => {
-  //   const { checkedIngredients } = this.state;
-  //   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  //   checkedIngredients.push(index);
-  //   this.setState({ checkedIngredients: checkedIngredients });
-  // }
-
-  // ingredientUnchecked = (index) => {
-  //   const { checkedIngredients } = this.state;
-  //   checkedIngredients.splice(checkedIngredients.indexOf(index), 1);
-  //   this.setState({ checkedIngredients: checkedIngredients });
-  // }
-
-  // directionChecked = (index) => {
-  //   const { checkedDirections } = this.state;
-  //   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  //   checkedDirections.push(index);
-  //   this.setState({ checkedDirections: checkedDirections });
-  // }
-
-  // directionUnchecked = (index) => {
-  //   const { checkedDirections } = this.state;
-  //   checkedDirections.splice(checkedDirections.indexOf(index), 1);
-  //   this.setState({ checkedDirections: checkedDirections });
-  // }
-
-  // renderIngredients() {
-  //   const { recipe } = this.props.route.params;
-  //   let ingredients = [];
-  //   recipe.ingredients.forEach((ingredient, i) => {
-  //     let checked = this.state.checkedIngredients.includes(i);
-  //     ingredients.push(
-  //       <View key={i}>
-  //         <View style={{ borderBottomWidth: 1, borderColor: '#cccccc', }} />
-  //         <View style={{ flexDirection: 'row', marginVertical: 9, paddingHorizontal: 15, }}>
-  //           <Text key={i} style={{ fontSize: 16, color: !checked ? '#000' : '#7d7d7d' }}>
-  //             {ingredient.title}
-  //           </Text>
-  //           <View style={{ position: 'absolute', right: 0, marginRight: 10, alignSelf: 'center' }}>
-  //             {!this.state.checkedIngredients.includes(i) ?
-  //               (<Pressable onPress={() => this.ingredientChecked(i)} hitSlop={7}>
-  //                 <Icon name='circle-thin' type='font-awesome' size={20} color='#6b6b6b' onPress={() => { this.ingredientChecked(i) }} />
-  //               </Pressable>) :
-  //               (<Pressable onPress={() => this.ingredientUnchecked(i)} hitSlop={7}>
-  //                 <Icon name='check' type='ant-design' size={20} color='#42c930' onPress={() => { this.ingredientUnchecked(i) }} />
-  //               </Pressable>)}
-  //           </View>
-  //         </View>
-  //       </View>);
-  //   });
-  //   ingredients.push(
-  //     <View key={12345} style={{ borderBottomWidth: 1, borderColor: '#cccccc' }} />
-  //   )
-  //   return ingredients;
-  // }
-
-  // renderDirections() {
-  //   const { recipe } = this.props.route.params;
-  //   let directions = [];
-  //   recipe.directions.forEach((direction, index) => {
-  //     let checked = this.state.checkedDirections.includes(index);
-  //     directions.push(
-  //       <View key={index} style={{ backgroundColor: !checked ? '#e6e6e6' : '#f0f0f0', borderRadius: 10, marginVertical: 6, marginHorizontal: 10 }}>
-  //         <View style={{ marginVertical: 8, marginLeft: 6, flexDirection: 'row' }}>
-  //           <Text key={index} style={{ fontSize: 16, paddingRight: 35, color: !checked ? '#000' : '#737373' }}>
-  //             {`${index + 1}. ${direction.title}`}
-  //           </Text>
-  //           <View style={{ position: 'absolute', right: 0, marginRight: 10, alignSelf: 'center' }}>
-  //             {!checked ?
-  //               (<Pressable onPress={() => this.directionChecked(index)} hitSlop={10}>
-  //                 <Icon name='circle-thin' type='font-awesome' size={20} color='#6b6b6b' onPress={() => { this.directionChecked(index) }} />
-  //               </Pressable>) :
-  //               (<Pressable onPress={() => this.directionUnchecked(index)} hitSlop={10}>
-  //                 <Icon name='check' type='ant-design' size={20} color='#42c930' onPress={() => { this.directionUnchecked(index) }} />
-  //               </Pressable>)}
-  //           </View>
-  //         </View>
-  //       </View>);
-  //   });
-  //   return directions;
-  // }
 
   renderEditRecipe = () => {
     return <EditRecipeModal saveEditRecipe={this.saveEditRecipe} cancelEditPress={this.cancelEditPress} recipe={this.props.route.params.recipe} />
@@ -148,6 +68,52 @@ export default class Inventory extends React.Component {
     this.toolTipRef.current.toggleTooltip();
     this.props.route.params.deleteRecipe(this.props.route.params.recipe);
     this.props.navigation.goBack();
+  }
+
+  onScroll = (e) => {
+    let selectedIndex = 1;
+    const oldIndex = this.state.selectedImageIndex;
+    let currentX = e.nativeEvent.contentOffset.x;
+    if (currentX > oldX) {
+      // scrolling right
+      selectedIndex = Math.ceil(currentX / width) + 0;
+      if (selectedIndex !== oldIndex) {
+        this.setState({ selectedImageIndex: selectedIndex });
+        console.log(selectedIndex);
+      }
+    } else {
+      // scrolling left
+      selectedIndex = Math.floor(currentX / width) + 0;
+      if (selectedIndex !== oldIndex) {
+        this.setState({ selectedImageIndex: selectedIndex });
+        console.log(selectedIndex);
+      }
+    }
+    oldX = currentX;
+
+
+  }
+
+  renderPagination = (imagesLength) => {
+    const { selectedImageIndex } = this.state;
+    let paginationComponent = [];
+    if(imagesLength < 2) {
+      return null;
+    }
+    for(let i = 0; i < imagesLength; i++) {
+      if(i === selectedImageIndex) {
+        paginationComponent.push(<View style={{ backgroundColor: '#fff', height: 9, width: 9, borderRadius: 5, marginLeft: 5 }} />);
+      } else {
+        paginationComponent.push(<View style={{ backgroundColor: '#969696', height: 9, width: 9, borderRadius: 5, marginLeft: 5 }} />);
+      }
+    }
+    return (
+    <View style={{ width: '100%', height: 20, backgroundColor: '#ffffff00', alignSelf: 'center', alignContent: 'center', alignItems: 'center', justifyContent: 'center', marginTop: 5, position: 'absolute', top: 0, zIndex: 200, borderRadius: 10 }} >
+      <View style={{ flexDirection: 'row', }}>
+        {paginationComponent}
+      </View>
+    </View>
+    );
   }
 
   render() {
@@ -181,6 +147,7 @@ export default class Inventory extends React.Component {
         >
           {recipe.images.length > 0 ?
             <View>
+              {this.renderPagination(recipe.images.length)}
               <FlatList
                 data={recipe.images}
                 horizontal
@@ -197,6 +164,7 @@ export default class Inventory extends React.Component {
                 snapToInterval={Dimensions.get("window").width + (0 * 2)}
                 decelerationRate={0.993}
                 showsHorizontalScrollIndicator={false}
+                onScroll={this.onScroll}
               />
             </View>
             : null}

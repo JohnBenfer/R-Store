@@ -95,42 +95,6 @@ export default class EditRecipeModal extends React.Component {
     this.props.saveEditRecipe(newRecipe);
   }
 
-  // addIngredient = () => {
-  //   const { ingredients } = this.state;
-  //   ingredients.push({ title: '' });
-  //   this.setState({ ingredients });
-  // }
-
-  // removeIngredient = (index) => {
-  //   const { ingredients } = this.state;
-  //   ingredients.splice(index, 1);
-  //   this.setState({ ingredients });
-  // }
-
-  // handleIngredientChange = (text, index) => {
-  //   let { ingredients } = this.state;
-  //   ingredients[index].title = text;
-  //   this.setState({ ingredients, ingredientsChanged: true });
-  // }
-
-  // addDirection = () => {
-  //   const { directions } = this.state;
-  //   directions.push({title: '', groupId: 0});
-  //   this.setState({ directions });
-  // }
-
-  // removeDirection = (index) => {
-  //   const { directions } = this.state;
-  //   directions.splice(index, 1);
-  //   this.setState({ directions });
-  // }
-
-  // handleDirectionChange = (text, index) => {
-  //   let { directions } = this.state;
-  //   directions[index].title = text;
-  //   this.setState({ directions, directionsChanged: true });
-  // }
-
   changeTitle = (text) => {
     if (text.length < 40) {
       this.setState({ titleError: false, title: text, titleChanged: true });

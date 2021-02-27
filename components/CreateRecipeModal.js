@@ -1,12 +1,12 @@
 import React from 'react';
 import PropTypes from 'react';
-import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Image, ImageBackground, LayoutAnimation, TextInput } from 'react-native';
-import { Input, Button, Overlay, Text, Icon } from 'react-native-elements';
+import { StyleSheet, View, SafeAreaView, LayoutAnimation, TextInput } from 'react-native';
+import { Button, Text } from 'react-native-elements';
 import EditIngredients from './EditIngredients';
 import EditDirections from './EditDirections';
+import EditImages from './EditImages';
 import * as ImagePicker from 'expo-image-picker';
 import { Dimensions } from 'react-native';
-import { Pressable } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import { RecipesPath } from '../Constants';
 import { ScrollView } from 'react-native';
@@ -17,7 +17,6 @@ const propTypes = {
 }
 export default class CreateRecipeModal extends React.Component {
   ingredientRef = React.createRef();
-  photoListRef = React.createRef();
 
   constructor(props) {
     super(props);
@@ -32,52 +31,6 @@ export default class CreateRecipeModal extends React.Component {
       titleError: false,
       descriptionError: false,
     };
-  }
-
-  async componentDidMount() {
-
-  }
-
-  addImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      alert('Sorry, we need camera roll permissions to make this work!');
-    }
-
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      aspect: [6, 3],
-      quality: 1,
-    });
-    if (!result.cancelled) {
-      let images = this.state.images;
-      images.push(result.uri);
-      LayoutAnimation.easeInEaseOut();
-      this.setState({ images: images });
-      setTimeout(() => this.photoListRef.current.scrollToIndex({ index: images.length - 1 }), 10);
-
-    }
-  }
-
-  takeImage = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      alert('Sorry, we need camera roll permissions to make this work!');
-    }
-    let result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: false,
-      aspect: [4, 3],
-      quality: 1,
-    });
-    if (!result.cancelled) {
-      let images = this.state.images;
-      images.push(result.uri);
-      LayoutAnimation.easeInEaseOut();
-      this.setState({ images: images });
-      setTimeout(() => this.photoListRef.current.scrollToIndex({ index: images.length - 1 }), 1);
-    }
   }
 
   saveRecipe = async () => {
@@ -113,42 +66,6 @@ export default class CreateRecipeModal extends React.Component {
     });
     this.props.addRecipe(newRecipe);
   }
-
-  // addIngredient = (groupId) => {
-  //   const { ingredients } = this.state;
-  //   ingredients.push({ title: '', groupId: groupId });
-  //   this.setState({ ingredients });
-  // }
-
-  // removeIngredient = (index) => {
-  //   const { ingredients } = this.state;
-  //   ingredients.splice(index, 1);
-  //   this.setState({ ingredients });
-  // }
-
-  // handleIngredientChange = (text, index) => {
-  //   let { ingredients } = this.state;
-  //   ingredients[index].title = text;
-  //   this.setState({ ingredients });
-  // }
-
-  // addDirection = (groupId) => {
-  //   const { directions } = this.state;
-  //   directions.push({ title: '', groupId: groupId });
-  //   this.setState({ directions });
-  // }
-
-  // removeDirection = (index) => {
-  //   const { directions } = this.state;
-  //   directions.splice(index, 1);
-  //   this.setState({ directions });
-  // }
-
-  // handleDirectionChange = (text, index) => {
-  //   let { directions } = this.state;
-  //   directions[index].title = text;
-  //   this.setState({ directions });
-  // }
 
   changeDirections = (directions) => {
     this.setState({ directions: directions });
@@ -186,71 +103,8 @@ export default class CreateRecipeModal extends React.Component {
     return blank;
   }
 
-  // renderIngredients = () => {
-  //   const { ingredients } = this.state;
-  //   return (
-  //     <View>
-  //       {
-  //         ingredients.map((ingredient, index) => (
-  //           <View key={index} style={[styles.row, { marginHorizontal: 15 }]}>
-  //             <TextInput
-  //               style={[styles.textInput, { width: '90%', fontSize: 14, marginBottom: 7 }]}
-  //               onChangeText={(text) => this.handleIngredientChange(text, index)}
-  //               value={ingredient.title}
-  //               onSubmitEditing={() => {
-  //                 // index+1 === ingredients.length && this.addIngredient();
-  //               }}
-  //               key={index}
-  //             />
-  //             {index > 0 || ingredients.length > 1 ? (
-  //               <View style={{ marginTop: 6, marginLeft: 8 }}>
-  //                 <Pressable onPress={() => this.removeIngredient(index)} hitSlop={10}>
-  //                   <Icon name='md-close' type='ionicon' size={15} color='#000' />
-  //                 </Pressable>
-  //               </View>
-  //             ) : null}
-  //           </View>
-  //         ))
-  //       }
-  //     </View>
-  //   );
-  // }
-
-  // renderDirections = () => {
-  //   const { directions } = this.state;
-  //   return (
-  //     <View>
-  //       {directions.map((direction, index) => (
-  //         <View key={index} style={[styles.row, { marginHorizontal: 15 }]}>
-  //           <View style={{ width: 20 }}>
-  //             <Text style={{ marginTop: 5 }}>
-  //               {`${index + 1}.`}
-  //             </Text>
-  //           </View>
-  //           <TextInput
-  //             style={{ width: Dimensions.get("window").width * 0.9 - 45, backgroundColor: '#dbdbdb', borderRadius: 5, padding: 5, paddingHorizontal: 7, fontSize: 14, marginBottom: 7 }}
-  //             onChangeText={(text) => this.handleDirectionChange(text, index)}
-  //             value={direction}
-  //             onSubmitEditing={() => {
-  //               index + 1 === ingredients.length && this.addDirection();
-  //             }}
-  //             key={index}
-  //           />
-  //           {index > 0 || directions.length > 1 ? (
-  //             <View style={{ marginTop: 6, marginLeft: 8 }}>
-  //               <Pressable onPress={() => this.removeDirection(index)} hitSlop={10}>
-  //                 <Icon name='md-close' type='ionicon' size={15} color='#000' />
-  //               </Pressable>
-  //             </View>
-  //           ) : null}
-  //         </View>
-  //       ))}
-  //     </View>
-  //   );
-  // }
-
   render() {
-    const { images, title, ingredients, directions, description, titleError, descriptionError } = this.state;
+    const { title, ingredients, directions, titleError, descriptionError } = this.state;
     return (
       <SafeAreaView>
         <View style={{ backgroundColor: '#fff' }}>
@@ -288,7 +142,8 @@ export default class CreateRecipeModal extends React.Component {
               {titleError ?
                 <Text style={{ color: 'red' }}>
                   Title is too long
-              </Text> : null}
+                </Text> :
+              null}
             </View>
             <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
               Description
@@ -302,63 +157,12 @@ export default class CreateRecipeModal extends React.Component {
             <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
               Ingredients
             </Text>
-            <EditIngredients ingredients={ingredients} changeIngredients={this.changeIngredients}/>
+            <EditIngredients ingredients={ingredients} changeIngredients={this.changeIngredients} />
             <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
               Directions
             </Text>
-            <EditDirections directions={directions} changeDirections={this.changeDirections}/>
-
-            <View style={[styles.row, styles.photoRow]}>
-              <View style={{ marginTop: 0, width: '15%', justifyContent: 'center' }}>
-                <View style={{ margin: 0 }}>
-                  <Pressable onPress={this.takeImage}>
-                    <Icon type="ionicon" name="camera" size={25} color="#808080" reverse onPress={this.takeImage} />
-                  </Pressable>
-                </View>
-                <View style={{ margin: 0 }}>
-                  <Pressable onPress={this.addImage}>
-                    <Icon type="MaterialIcons" name="insert-photo" size={25} color="#808080" reverse onPress={this.addImage} />
-                  </Pressable>
-                </View>
-              </View>
-
-              <View style={styles.photoList}>
-                {images.length > 0 ? <FlatList
-                  data={images}
-                  horizontal
-                  renderItem={(image, index) => {
-                    return (
-                      <View style={{ overflow: 'visible', paddingVertical: 5 }}>
-                        <ImageBackground source={{ uri: image.item }} style={{ width: 190, height: 190, marginHorizontal: 5, overflow: 'visible' }}>
-                          <Pressable style={{ width: 25, height: 25, position: 'absolute', top: -5, right: -5 }}>
-                            <Button
-                              onPress={() => {
-                                let newImages = images;
-                                newImages.splice(images.indexOf(image.item), 1)
-                                LayoutAnimation.easeInEaseOut();
-                                this.setState({ images: newImages });
-                              }}
-                              title='x'
-                              containerStyle={{ borderRadius: 20 }} titleStyle={{ fontSize: 14 }}
-                              buttonStyle={{ backgroundColor: 'red', overflow: 'visible', marginTop: -7 }} />
-                          </Pressable>
-                        </ImageBackground>
-                      </View>
-                    );
-                  }}
-                  keyExtractor={(image, index) => index.toString()}
-                  contentContainerStyle={{ paddingHorizontal: 10 }}
-                  snapToAlignment={"center"}
-                  snapToInterval={200}
-                  decelerationRate={0.993}
-                  showsHorizontalScrollIndicator={false}
-                  ref={this.photoListRef}
-                /> :
-                  <View style={{ alignSelf: 'center', justifyContent: 'center' }}>
-                    <Icon style={{}} type="MaterialIcons" name="insert-photo" size={165} color="#bfbfbf" onPress={this.addImage} />
-                  </View>}
-              </View>
-            </View>
+            <EditDirections directions={directions} changeDirections={this.changeDirections} />
+            <EditImages images={this.state.images} changeImages={(images) => this.setState({ images: images })} />
             <View style={{ height: 300 }}>
 
             </View>
@@ -398,24 +202,6 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-  },
-  photoList: {
-    height: 200,
-    marginVertical: 10,
-    paddingVertical: 10,
-    marginLeft: 10,
-    width: Dimensions.get("window").width * 0.85 - 10,
-    borderWidth: 0,
-    backgroundColor: '#dbdbdb',
-    borderBottomLeftRadius: 10,
-    borderTopLeftRadius: 10,
-    justifyContent: 'center'
-  },
-  photoRow: {
-    marginTop: 10,
-    marginLeft: 5,
-    paddingHorizontal: 0,
-
   },
   textInput: {
     backgroundColor: '#dbdbdb',
