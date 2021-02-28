@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'react';
-import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Image, ImageBackground, LayoutAnimation, TextInput } from 'react-native';
+import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Image, ImageBackground, LayoutAnimation, TextInput, KeyboardAvoidingView } from 'react-native';
 import { Input, Button, Overlay, Text, Icon } from 'react-native-elements';
 import EditIngredients from './EditIngredients';
 import EditDirections from './EditDirections';
@@ -151,10 +151,10 @@ export default class EditRecipeModal extends React.Component {
                 containerStyle={styles.saveButtonBorder}
                 titleStyle={styles.saveButtonTitle}
                 disabled={
-                  (titleError || descriptionError) || 
+                  (titleError || descriptionError) ||
                   (title.length === 0 || this.allIngredientsBlank(ingredients) || this.allDirectionsBlank(directions)) ||
-                  (title === this.props.recipe.title && 
-                    description === this.props.recipe.description && 
+                  (title === this.props.recipe.title &&
+                    description === this.props.recipe.description &&
                     !ingredientsChanged &&
                     !directionsChanged &&
                     !imagesChanged)
@@ -162,96 +162,98 @@ export default class EditRecipeModal extends React.Component {
               />
             </View>
           </View>
-          <ScrollView>
-            <Text style={{ marginTop: 5, marginBottom: 5, paddingHorizontal: 15, fontSize: 18, alignSelf: 'center', fontWeight: 'bold' }}>
-              Recipe Name
+          <KeyboardAvoidingView behavior="padding" enabled keyboardVerticalOffset={105} style={{}}>
+            <ScrollView>
+              <Text style={{ marginTop: 5, marginBottom: 5, paddingHorizontal: 15, fontSize: 18, alignSelf: 'center', fontWeight: 'bold' }}>
+                Recipe Name
           </Text>
-            <View style={{ marginHorizontal: 15 }}>
-              <TextInput
-                style={[styles.textInput, { width: '100%', fontSize: 16 }]}
-                autoFocus={true}
-                onChangeText={(text) => this.changeTitle(text)}
-                value={this.state.title}
-              />
-              {titleError ?
-                <Text style={{ color: 'red' }}>
-                  Title is too long
+              <View style={{ marginHorizontal: 15 }}>
+                <TextInput
+                  style={[styles.textInput, { width: '100%', fontSize: 16 }]}
+                  autoFocus={true}
+                  onChangeText={(text) => this.changeTitle(text)}
+                  value={this.state.title}
+                />
+                {titleError ?
+                  <Text style={{ color: 'red' }}>
+                    Title is too long
               </Text> : null}
-            </View>
-            <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
-              Description
+              </View>
+              <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
+                Description
           </Text>
-            <View style={{ marginHorizontal: 15 }}>
-              <TextInput
-                style={[styles.textInput, { width: '100%', fontSize: 14 }]}
-                onChangeText={(text) => this.setState({ description: text })}
-                value={description}
-              />
-            </View>
-            <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
-              Ingredients
+              <View style={{ marginHorizontal: 15 }}>
+                <TextInput
+                  style={[styles.textInput, { width: '100%', fontSize: 14 }]}
+                  onChangeText={(text) => this.setState({ description: text })}
+                  value={description}
+                />
+              </View>
+              <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
+                Ingredients
           </Text>
-            <EditIngredients ingredients={ingredients} changeIngredients={(ingredients) => this.setState({ingredients: ingredients, ingredientsChanged: true})}/>
-            <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
-              Directions
+              <EditIngredients ingredients={ingredients} changeIngredients={(ingredients) => this.setState({ ingredients: ingredients, ingredientsChanged: true })} />
+              <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
+                Directions
           </Text>
-            <EditDirections directions={directions} changeDirections={(directions) => this.setState({directions: directions, directionsChanged: true})} />
+              <EditDirections directions={directions} changeDirections={(directions) => this.setState({ directions: directions, directionsChanged: true })} />
 
-            <View style={[styles.row, styles.photoRow]}>
-              <View style={{ marginTop: 0, width: '15%', justifyContent: 'center' }}>
-                <View style={{ margin: 0 }}>
-                  <Pressable onPress={this.takeImage}>
-                    <Icon type="ionicon" name="camera" size={25} color="#808080" reverse onPress={this.takeImage} />
-                  </Pressable>
+              <View style={[styles.row, styles.photoRow]}>
+                <View style={{ marginTop: 0, width: '15%', justifyContent: 'center' }}>
+                  <View style={{ margin: 0 }}>
+                    <Pressable onPress={this.takeImage}>
+                      <Icon type="ionicon" name="camera" size={25} color="#808080" reverse onPress={this.takeImage} />
+                    </Pressable>
+                  </View>
+                  <View style={{ margin: 0 }}>
+                    <Pressable onPress={this.addImage}>
+                      <Icon type="MaterialIcons" name="insert-photo" size={25} color="#808080" reverse onPress={this.addImage} />
+                    </Pressable>
+                  </View>
                 </View>
-                <View style={{ margin: 0 }}>
-                  <Pressable onPress={this.addImage}>
-                    <Icon type="MaterialIcons" name="insert-photo" size={25} color="#808080" reverse onPress={this.addImage} />
-                  </Pressable>
+
+                <View style={styles.photoList}>
+                  {images?.length > 0 ? <FlatList
+                    data={images}
+                    horizontal
+                    renderItem={(image, index) => {
+                      return (
+                        <View style={{ overflow: 'visible', paddingVertical: 5 }}>
+                          <ImageBackground source={{ uri: image.item }} style={{ width: 190, height: 190, marginHorizontal: 5, overflow: 'visible' }}>
+                            <Pressable style={{ width: 25, height: 25, position: 'absolute', top: -5, right: -5 }}>
+                              <Button
+                                onPress={() => {
+                                  let newImages = images;
+                                  newImages.splice(images.indexOf(image.item), 1)
+                                  LayoutAnimation.easeInEaseOut();
+                                  this.setState({ images: newImages, imagesChanged: true });
+                                }}
+                                title='x'
+                                containerStyle={{ borderRadius: 20 }} titleStyle={{ fontSize: 14 }}
+                                buttonStyle={{ backgroundColor: 'red', overflow: 'visible', marginTop: -7 }} />
+                            </Pressable>
+                          </ImageBackground>
+                        </View>
+                      );
+                    }}
+                    keyExtractor={(image, index) => index.toString()}
+                    contentContainerStyle={{ paddingHorizontal: 10 }}
+                    snapToAlignment={"center"}
+                    snapToInterval={200}
+                    decelerationRate={0.993}
+                    showsHorizontalScrollIndicator={false}
+                    ref={this.photoListRef}
+                  /> :
+                    <View style={{ alignSelf: 'center', justifyContent: 'center' }}>
+                      <Icon style={{}} type="MaterialIcons" name="insert-photo" size={165} color="#bfbfbf" onPress={this.addImage} />
+                    </View>}
                 </View>
               </View>
+              <View style={{ height: 200 }}>
 
-              <View style={styles.photoList}>
-                {images?.length > 0 ? <FlatList
-                  data={images}
-                  horizontal
-                  renderItem={(image, index) => {
-                    return (
-                      <View style={{ overflow: 'visible', paddingVertical: 5 }}>
-                        <ImageBackground source={{ uri: image.item }} style={{ width: 190, height: 190, marginHorizontal: 5, overflow: 'visible' }}>
-                          <Pressable style={{ width: 25, height: 25, position: 'absolute', top: -5, right: -5 }}>
-                            <Button
-                              onPress={() => {
-                                let newImages = images;
-                                newImages.splice(images.indexOf(image.item), 1)
-                                LayoutAnimation.easeInEaseOut();
-                                this.setState({ images: newImages, imagesChanged: true });
-                              }}
-                              title='x'
-                              containerStyle={{ borderRadius: 20 }} titleStyle={{ fontSize: 14 }}
-                              buttonStyle={{ backgroundColor: 'red', overflow: 'visible', marginTop: -7 }} />
-                          </Pressable>
-                        </ImageBackground>
-                      </View>
-                    );
-                  }}
-                  keyExtractor={(image, index) => index.toString()}
-                  contentContainerStyle={{ paddingHorizontal: 10 }}
-                  snapToAlignment={"center"}
-                  snapToInterval={200}
-                  decelerationRate={0.993}
-                  showsHorizontalScrollIndicator={false}
-                  ref={this.photoListRef}
-                /> :
-                  <View style={{ alignSelf: 'center', justifyContent: 'center' }}>
-                    <Icon style={{}} type="MaterialIcons" name="insert-photo" size={165} color="#bfbfbf" onPress={this.addImage} />
-                  </View>}
               </View>
-            </View>
-            <View style={{ height: 300 }}>
-
-            </View>
-          </ScrollView>
+            </ScrollView>
+          </KeyboardAvoidingView>
         </View>
       </SafeAreaView>
     );

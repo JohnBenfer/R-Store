@@ -155,12 +155,8 @@ export default class Recipes extends React.Component {
     return favoriteRecipes.concat(unPinnedRecipes);
   }
 
-  createRecipe = () => {
-    this.props.navigation.push("CreateRecipe", { addRecipe: this.addRecipe });
-  }
-
   createRecipeModal = () => {
-    if (Platform.OS === 'ios') {
+    if (Platform.OS === '-1') {
       setTimeout(() => this.createRecipeRef.current.snapTo(0), 50);
       this.setState({ showCreateRecipe: true });
     } else {
