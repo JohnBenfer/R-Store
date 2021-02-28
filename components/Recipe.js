@@ -79,14 +79,12 @@ export default class Inventory extends React.Component {
       selectedIndex = Math.ceil(currentX / width) + 0;
       if (selectedIndex !== oldIndex) {
         this.setState({ selectedImageIndex: selectedIndex });
-        console.log(selectedIndex);
       }
     } else {
       // scrolling left
       selectedIndex = Math.floor(currentX / width) + 0;
       if (selectedIndex !== oldIndex) {
         this.setState({ selectedImageIndex: selectedIndex });
-        console.log(selectedIndex);
       }
     }
     oldX = currentX;
@@ -101,10 +99,10 @@ export default class Inventory extends React.Component {
       return null;
     }
     for(let i = 0; i < imagesLength; i++) {
-      if(i === selectedImageIndex) {
-        paginationComponent.push(<View style={{ backgroundColor: '#fff', height: 9, width: 9, borderRadius: 5, marginLeft: 5 }} />);
+      if(i === selectedImageIndex || (selectedImageIndex > imagesLength-1 && i === imagesLength-1) || (selectedImageIndex < 0 && i === 0)) {
+        paginationComponent.push(<View key={i} style={{ backgroundColor: '#fff', height: 9, width: 9, borderRadius: 5, marginLeft: 5 }} />);
       } else {
-        paginationComponent.push(<View style={{ backgroundColor: '#969696', height: 9, width: 9, borderRadius: 5, marginLeft: 5 }} />);
+        paginationComponent.push(<View key={i} style={{ backgroundColor: '#969696', height: 9, width: 9, borderRadius: 5, marginLeft: 5 }} />);
       }
     }
     return (

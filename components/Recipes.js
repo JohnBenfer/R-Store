@@ -221,7 +221,7 @@ export default class Recipes extends React.Component {
         this.flatListRef.current.scrollToIndex({ index: 0 });
       }
       LayoutAnimation.easeInEaseOut();
-      this.setState({ displayRecipes: this.state.recipes });
+      this.setState({ displayRecipes: this.sortRecipes(this.state.recipes, this.state.favoriteRecipes) });
       return;
     }
     let text = searchText.toLowerCase().trim();
