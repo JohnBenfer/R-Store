@@ -1,12 +1,12 @@
 import React from 'react';
 import PropTypes from 'react';
-import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Image, ImageBackground, LayoutAnimation, TextInput } from 'react-native';
+import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Image, ImageBackground, LayoutAnimation, TextInput, KeyboardAvoidingView } from 'react-native';
 import { Input, Button, Overlay, Text, Icon } from 'react-native-elements';
 import * as ImagePicker from 'expo-image-picker';
 import { Dimensions } from 'react-native';
 import { Pressable } from 'react-native';
 import * as FileSystem from 'expo-file-system';
-import { RecipesPath } from '../Constants';
+import { RecipesPath } from '../../Constants';
 import { ScrollView } from 'react-native';
 import EditDirections from './EditDirections';
 import EditImages from './EditImages';
@@ -107,6 +107,7 @@ export default class CreateRecipeModal extends React.Component {
     const { images, title, ingredients, directions, description, titleError, descriptionError } = this.state;
     return (
       <SafeAreaView>
+        <StatusBar barStyle={Platform.OS === 'android' ? 'light-content' : 'dark-content'} />
         <View style={{ backgroundColor: '#fff' }}>
           <View style={[styles.row, { marginBottom: 15, marginTop: 10 }]}>
             <View style={styles.cancelButtonContainer}>
@@ -128,46 +129,48 @@ export default class CreateRecipeModal extends React.Component {
               />
             </View>
           </View>
-          <ScrollView bounces={true}>
-            <Text style={{ marginTop: 5, marginBottom: 5, paddingHorizontal: 15, fontSize: 18, alignSelf: 'center', fontWeight: 'bold' }}>
-              Recipe Name
+          <KeyboardAvoidingView behavior="padding" enabled keyboardVerticalOffset={46} style={{}}>
+            <ScrollView bounces={true}>
+              <Text style={{ marginTop: 5, marginBottom: 5, paddingHorizontal: 15, fontSize: 18, alignSelf: 'center', fontWeight: 'bold' }}>
+                Recipe Name
           </Text>
-            <View style={{ marginHorizontal: 15 }}>
-              <TextInput
-                style={[styles.textInput, { width: '100%', fontSize: 16 }]}
-                autoFocus={true}
-                onChangeText={(text) => this.changeTitle(text)}
-                value={this.state.title}
-              />
-              {titleError ?
-                <Text style={{ color: 'red' }}>
-                  Title is too long
+              <View style={{ marginHorizontal: 15 }}>
+                <TextInput
+                  style={[styles.textInput, { width: '100%', fontSize: 16 }]}
+                  autoFocus={true}
+                  onChangeText={(text) => this.changeTitle(text)}
+                  value={this.state.title}
+                />
+                {titleError ?
+                  <Text style={{ color: 'red' }}>
+                    Title is too long
               </Text> : null}
-            </View>
-            <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
-              Description
+              </View>
+              <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
+                Description
           </Text>
-            <View style={{ marginHorizontal: 15 }}>
-              <TextInput
-                style={[styles.textInput, { width: '100%', fontSize: 14 }]}
-                onChangeText={(text) => this.setState({ description: text })}
-              />
-            </View>
-            <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
-              Ingredients
+              <View style={{ marginHorizontal: 15 }}>
+                <TextInput
+                  style={[styles.textInput, { width: '100%', fontSize: 14 }]}
+                  onChangeText={(text) => this.setState({ description: text })}
+                />
+              </View>
+              <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
+                Ingredients
           </Text>
-          <EditIngredients ingredients={ingredients} changeIngredients={(ingredients) => this.setState({ ingredients: ingredients })} />
+              <EditIngredients ingredients={ingredients} changeIngredients={(ingredients) => this.setState({ ingredients: ingredients })} />
 
 
-            <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
-              Directions
+              <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
+                Directions
           </Text>
-            <EditDirections directions={directions} changeDirections={(directions) => this.setState({ directions: directions })} />
-            <EditImages images={this.state.images} changeImages={(images) => this.setState({ images: images })} />
-            <View style={{ height: 300 }}>
+              <EditDirections directions={directions} changeDirections={(directions) => this.setState({ directions: directions })} />
+              <EditImages images={this.state.images} changeImages={(images) => this.setState({ images: images })} />
+              <View style={{ height: 100 }}>
 
-            </View>
-          </ScrollView>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
         </View>
       </SafeAreaView>
     );

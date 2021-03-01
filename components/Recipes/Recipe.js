@@ -8,6 +8,7 @@ import Ingredients from './Ingredients';
 import Directions from './Directions';
 import BottomSheet from 'reanimated-bottom-sheet';
 import Constants from 'expo-constants';
+import AddToCookbook from '../Cookbooks/AddToCookbook';
 
 const SINGLE_LINE_HEIGHT = 38;
 let titleOverflow = false;
@@ -29,6 +30,7 @@ export default class Inventory extends React.Component {
       viewMarginTop: 15,
       showEditRecipe: false,
       selectedImageIndex: 0,
+      selectCookbookToggled: false,
     };
   }
 
@@ -68,6 +70,21 @@ export default class Inventory extends React.Component {
     this.toolTipRef.current.toggleTooltip();
     this.props.route.params.deleteRecipe(this.props.route.params.recipe);
     this.props.navigation.goBack();
+  }
+
+  addToCookbook = () => {
+    const { recipe } = this.props.route.params;
+    this.setState({ selectCookbookToggled: true });
+    this.toolTipRef?.current?.toggleTooltip();
+  }
+
+  cancelAddToCookbook = () => {
+    this.setState({ selectCookbookToggled: false });
+  }
+
+  saveToCookbook = () => {
+    this.setState({ selectCookbookToggled: false });
+    
   }
 
   onScroll = (e) => {
@@ -139,6 +156,9 @@ export default class Inventory extends React.Component {
             onOpenEnd={() => this.setState({ disabled: true })}
             renderHeader={() => (<View style={{ width: 80, justifyContent: 'center', alignSelf: 'center', height: 6, borderRadius: 10, backgroundColor: '#000', marginBottom: 5 }}></View>)}
           /> : null}
+          <Overlay isVisible={this.state.selectCookbookToggled} onBackdropPress={() => this.setState({ selectCookbookToggled: false }) } overlayStyle={{width: '90%', height: '60%', borderRadius: 10, padding: 0, overflow: 'hidden'}}>
+            <AddToCookbook cancelAddToCookbook={this.cancelAddToCookbook} addToCookbook={this.saveToCookbook} />
+          </Overlay>
         <ScrollView
           style={{ paddingBottom: 0, height: '100%', width: width }}
           stickyHeaderIndices={[0]}
@@ -190,7 +210,7 @@ export default class Inventory extends React.Component {
             </View>
             <View style={{ position: 'absolute', right: 0, bottom: 0, marginBottom: 0, marginRight: 5, zIndex: 1000 }}>
               <View style={{ borderRadius: 20, overflow: 'hidden' }}>
-                <Tooltip
+                {!this.state.hideTooltip ? <Tooltip
                   ref={this.toolTipRef}
                   withOverlay={false}
                   withPointer={false}
@@ -212,9 +232,14 @@ export default class Inventory extends React.Component {
                           <Text style={styles.menuItemText}>Delete</Text>
                         </View>
                       </TouchableHighlight>
+                      <TouchableHighlight underlayColor="#000" style={styles.menuItem} onPress={this.addToCookbook}>
+                        <View style={styles.menuItemTextContainer}>
+                          <Text style={styles.menuItemText}>Add to Cookbook</Text>
+                        </View>
+                      </TouchableHighlight>
                     </View>
                   }
-                />
+                /> : null}
               </View>
               <Icon
                 name="dots-three-horizontal"

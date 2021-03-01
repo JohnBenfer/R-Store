@@ -2,23 +2,22 @@ import React, { createRef } from 'react';
 import { StyleSheet, View, SafeAreaView, Dimensions, FlatList, StatusBar, Platform, Animated, TextInput, TouchableHighlight, LayoutAnimation, Pressable } from 'react-native';
 import { Input, Button, Overlay, Text, Icon } from 'react-native-elements';
 import * as Haptics from 'expo-haptics';
+import { connect } from 'react-redux';
+import { changeRecipes } from '../../redux/actions/changeRecipes';
+import { bindActionCreators } from 'redux';
 import RecipeCard from './RecipeCard';
-import CreateRecipeModal from './CreateRecipeModal';
-import EditRecipeModal from './EditRecipeModal';
-import Recipe from './Recipe';
 import * as FileSystem from 'expo-file-system';
 import * as SplashScreen from 'expo-splash-screen';
-import { RecipesPath } from '../Constants';
-import BottomSheet from 'reanimated-bottom-sheet';
+import { RecipesPath } from '../../Constants';
 import Constants from 'expo-constants';
-import { DEFAULT_CARD_HEIGHT, CARD_HEIGHT, MARGIN } from '../Constants';
+import { DEFAULT_CARD_HEIGHT, CARD_HEIGHT, MARGIN } from '../../Constants';
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 const BOTTOM_TABS = 90;
 let oldY = 0;
 const recipeHeight = Dimensions.get("window").height - Constants.statusBarHeight - 130;
 
-export default class Recipes extends React.Component {
+class Recipes extends React.Component {
   y = new Animated.Value(0);
   flatListRef = createRef();
   searchRef = createRef();
@@ -28,6 +27,7 @@ export default class Recipes extends React.Component {
 
   constructor(props) {
     super(props);
+    // console.log(props);
     this.state = {
       recipes: [],
       selectedRecipe: {},
@@ -40,24 +40,30 @@ export default class Recipes extends React.Component {
       showEditRecipe: false,
       favoriteRecipes: [],
       titleOverflow: false,
+      navigating: false,
     };
 
   }
 
   async componentDidMount() {
+    const { recipes } = this.props;
+    console.log(recipes);
+    console.log(this.props);
+    console.log('actions: ');
+    console.log(this.props.actions);
     setTimeout(() => SplashScreen.hideAsync(), 500);
     this.getRecipes();
     // prevents going back to signup page
     this.props.navigation.setOptions({
       headerRight: () => (
-        <Pressable style={{ borderWidth: 0, borderColor: '#636363', marginHorizontal: 7, }} onPress={this.createRecipeModal} hitSlop={10}>
+        <Pressable style={{ borderWidth: 0, borderColor: '#636363', marginHorizontal: 7, }} onPress={this.createRecipe} hitSlop={10}>
           <Icon
             style={{ alignSelf: 'center' }}
             name="md-add"
             type="ionicon"
             color='#000'
             size={35}
-            onPress={this.createRecipeModal}
+            onPress={this.createRecipe}
           />
         </Pressable>
       ),
@@ -76,15 +82,15 @@ export default class Recipes extends React.Component {
       newRecipes.forEach((recipe) => {
         recipe.favorite ? favoriteRecipes.push(recipe) : null;
       });
-      
+      this.props.actions(newRecipes);
       this.setState({ recipes: newRecipes, displayRecipes: this.sortRecipes(newRecipes, favoriteRecipes), favoriteRecipes: favoriteRecipes });
       // this.assignIds(r);
-      
+
     });
   }
 
   fixDirections = async (recipes) => {
-    if (!recipes[0].directions[0].title) {
+    if (!recipes[0]?.directions[0]?.title) {
       let newRecipes = [];
       recipes.forEach((recipe) => {
         let newDirections = [];
@@ -132,16 +138,6 @@ export default class Recipes extends React.Component {
     setTimeout(() => this.flatListRef.current.scrollToIndex({ index: this.state.favoriteRecipes.length, viewPosition: 0.5 }), 500);
   }
 
-  addRecipeModal = (recipe) => {
-    let { recipes, displayRecipes } = this.state;
-    recipes.unshift(recipe);
-    // displayRecipes.push(recipe);
-    setTimeout(() => this.flatListRef.current.scrollToIndex({ index: this.state.favoriteRecipes.length, viewPosition: 0.5 }), 150);
-    const sortedRecipes = this.sortRecipes(recipes, this.state.favoriteRecipes);
-    this.setState({ recipes: recipes, displayRecipes: sortedRecipes });
-    this.createRecipeRef.current.snapTo(1);
-  }
-
   sortRecipes = (recipes, favoriteRecipes) => {
     let unPinnedRecipes = [];
     recipes.forEach((r) => {
@@ -155,18 +151,14 @@ export default class Recipes extends React.Component {
     return favoriteRecipes.concat(unPinnedRecipes);
   }
 
-  createRecipeModal = () => {
-    if (Platform.OS === '-1') {
-      setTimeout(() => this.createRecipeRef.current.snapTo(0), 50);
-      this.setState({ showCreateRecipe: true });
-    } else {
+  createRecipe = () => {
+    if (!this.state.navigating) {
       this.props.navigation.push("CreateRecipe", { generateId: this.generateId, addRecipe: this.addRecipe, });
     }
-
-  }
-
-  cancelCreatePress = () => {
-    this.createRecipeRef.current.snapTo(1);
+    this.setState({ navigating: true });
+    setTimeout(() => {
+      this.setState({ navigating: false });
+    }, 1500)
   }
 
   searchPress = () => {
@@ -343,11 +335,9 @@ export default class Recipes extends React.Component {
     await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify(newRecipes));
   }
 
-  renderCreateRecipe = () => {
-    return <CreateRecipeModal addRecipe={this.addRecipeModal} cancelPress={this.cancelCreatePress} generateId={this.generateId} />
-  }
-
   render() {
+    console.log('recipes in render:');
+    console.log(this.props.recipes);
     let selectedIndex = 1;
     const { showSearch, recipes, displayRecipes, showFullRecipe } = this.state;
 
@@ -360,23 +350,8 @@ export default class Recipes extends React.Component {
           <Pressable
             style={styles.disabledView}
             onPress={() => {
-              this.createRecipeRef?.current?.snapTo(1);
               this.setState({ disabled: false });
             }}
-          /> : null}
-        {this.state.showCreateRecipe ?
-          <BottomSheet
-            ref={this.createRecipeRef}
-            snapPoints={[recipeHeight, 0]}
-            borderRadius={20}
-            renderContent={this.renderCreateRecipe}
-            initialSnap={1}
-            enabledBottomInitialAnimation={true}
-            onCloseStart={() => this.setState({ disabled: false })}
-            onCloseEnd={() => this.setState({ showCreateRecipe: false, disabled: false })}
-            onOpenStart={() => this.setState({ disabled: true })}
-            onOpenEnd={() => this.setState({ disabled: true })}
-            renderHeader={() => (<View style={{ width: 80, justifyContent: 'center', alignSelf: 'center', height: 6, borderRadius: 10, backgroundColor: '#000', marginBottom: 5 }}></View>)}
           /> : null}
         <StatusBar barStyle={Platform.OS === 'android' ? 'light-content' : 'dark-content'} />
         <View style={styles.container}>
@@ -440,6 +415,24 @@ export default class Recipes extends React.Component {
     );
   }
 }
+
+const mapStateToProps = (state) => {
+  console.log('here in map');
+  return ({
+    recipes: state.recipes,
+  });
+}
+
+const mapDispatchToProps = dispatch => {
+  console.log("here in dispath to props");
+  return ({
+    actions: bindActionCreators(changeRecipes, dispatch),
+  });
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Recipes);
+
+
 
 const styles = StyleSheet.create({
   disabledView: {

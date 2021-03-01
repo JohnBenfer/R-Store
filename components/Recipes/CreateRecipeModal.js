@@ -8,7 +8,7 @@ import EditImages from './EditImages';
 import * as ImagePicker from 'expo-image-picker';
 import { Dimensions } from 'react-native';
 import * as FileSystem from 'expo-file-system';
-import { RecipesPath } from '../Constants';
+import { RecipesPath } from '../../Constants';
 import { ScrollView } from 'react-native';
 
 const propTypes = {

@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform } from 'react-native';
 import { Input, Button, Overlay, Text } from 'react-native-elements';
 
-export default class Inventory extends React.Component {
+export default class Cookbooks extends React.Component {
   constructor(props) {
     super(props);
     this.state = {

@@ -2,16 +2,15 @@ import * as React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Icon, Text } from 'react-native-elements';
-import Recipes from './Recipes';
-import Inventory from './Inventory';
-import Recipe from './Recipe';
-import CreateRecipe from './CreateRecipe';
+import Recipes from './Recipes/Recipes';
+import Cookbooks from './Cookbooks';
+import Recipe from './Recipes/Recipe';
+import CreateRecipe from './Recipes/CreateRecipe';
 
 const BottomTab = createBottomTabNavigator();
 
 const BottomTabNavigator = (props) => {
   let route = props?.route.params.navigationRef.current?.getCurrentRoute().name;
-
   return (
     <BottomTab.Navigator initialRouteName="Recipes">
       <BottomTab.Screen
@@ -33,10 +32,10 @@ const BottomTabNavigator = (props) => {
         }}
       />
       <BottomTab.Screen
-        name="Inventory"
+        name="Cookbooks"
         component={InventoryNavigator}
         options={{
-          tabBarLabel: 'Inventory',
+          tabBarLabel: 'Cookbooks',
           tabBarIcon: ({ color }) => (
             <Icon
               type="ionicon"
@@ -103,10 +102,10 @@ const RecipesNavigator = (props) => {
       />
       <HomeStack.Screen
         name="InventoryScreen"
-        component={Inventory}
+        component={Cookbooks}
         options={{
           headerShown: true,
-          title: 'Inventory',
+          title: 'Cookbooks',
           headerTitleAlign: 'center',
           headerStyle: {
             backgroundColor: '#fff',
@@ -121,11 +120,11 @@ const InventoryStack = createStackNavigator();
 const InventoryNavigator = (props) => {
   return <InventoryStack.Navigator>
     <InventoryStack.Screen
-      name="Inventory"
-      component={Inventory}
+      name="Cookbooks"
+      component={Cookbooks}
       options={{
         headerShown: true,
-        title: 'Inventory',
+        title: 'Cookbooks',
         headerTitleAlign: 'center',
         headerLeft: null,
         headerStyle: {

@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View, SafeAreaView, FlatList, StatusBar, Platform, Animated, Dimensions, Pressable, Image, ImageBackground } from 'react-native';
 import { Input, Button, Overlay, Text, Icon } from 'react-native-elements';
 import { LinearGradient } from 'expo-linear-gradient';
-import { DEFAULT_CARD_HEIGHT, CARD_HEIGHT, MARGIN } from '../Constants';
+import { DEFAULT_CARD_HEIGHT, CARD_HEIGHT, MARGIN } from '../../Constants';
 
 const BOTTOM_TABS = 90;
 const { height: wHeight, width } = Dimensions.get("window");

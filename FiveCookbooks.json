@@ -1,0 +1,57 @@
+[
+  {
+    "id": "1",
+    "title": "John's Cookbook",
+    "description": "John's 1st Cookbook",
+    "recipes": ["1", "2", "3"],
+    "owner": {
+      "id": "123",
+      "firstName": "John",
+      "lastName": "Benfer"
+    }
+  },
+  {
+    "id": "2",
+    "title": "Anna's Cookbook",
+    "description": "John's 2nd Cookbook",
+    "recipes": ["1", "2", "4"],
+    "owner": {
+      "id": "123",
+      "firstName": "John",
+      "lastName": "Benfer"
+    }
+  },
+  {
+    "id": "3",
+    "title": "Mom's Cookbook",
+    "description": "John's 3rd Cookbook",
+
+    "owner": {
+      "id": "123",
+      "firstName": "John",
+      "lastName": "Benfer"
+    }
+  },
+  {
+    "id": "4",
+    "title": "Grandma's Cookbook",
+    "description": "John's 4th Cookbook",
+    "recipes": ["1", "2", "5"],
+    "owner": {
+      "id": "123",
+      "firstName": "John",
+      "lastName": "Benfer"
+    }
+  },
+  {
+    "id": "5",
+    "title": "Deserts",
+    "description": "John's 5th Cookbook",
+    "recipes": ["7"],
+    "owner": {
+      "id": "123",
+      "firstName": "John",
+      "lastName": "Benfer"
+    }
+  }
+]
