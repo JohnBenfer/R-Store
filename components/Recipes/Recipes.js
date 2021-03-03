@@ -4,6 +4,7 @@ import { Input, Button, Overlay, Text, Icon } from 'react-native-elements';
 import * as Haptics from 'expo-haptics';
 import { connect } from 'react-redux';
 import { changeRecipes } from '../../redux/actions/changeRecipes';
+import { changeCookbooks } from '../../redux/actions/changeCookbooks';
 import { bindActionCreators } from 'redux';
 import RecipeCard from './RecipeCard';
 import * as FileSystem from 'expo-file-system';
@@ -11,6 +12,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { RecipesPath } from '../../Constants';
 import Constants from 'expo-constants';
 import { DEFAULT_CARD_HEIGHT, CARD_HEIGHT, MARGIN } from '../../Constants';
+import FiveCookbooks from '../../FiveCookbooks.json';
+import { ReadCookbooksFromFile, ReadRecipesFromFile, WriteCookbooksToFile, WriteRecipesToFile } from '../../Util';
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 const BOTTOM_TABS = 90;
@@ -27,7 +30,6 @@ class Recipes extends React.Component {
 
   constructor(props) {
     super(props);
-    // console.log(props);
     this.state = {
       recipes: [],
       selectedRecipe: {},
@@ -46,13 +48,11 @@ class Recipes extends React.Component {
   }
 
   async componentDidMount() {
-    const { recipes } = this.props;
-    console.log(recipes);
-    console.log(this.props);
-    console.log('actions: ');
-    console.log(this.props.actions);
+
+    this.props.changeCookbooks(FiveCookbooks);
     setTimeout(() => SplashScreen.hideAsync(), 500);
     this.getRecipes();
+    this.getCookbooks();
     // prevents going back to signup page
     this.props.navigation.setOptions({
       headerRight: () => (
@@ -82,11 +82,19 @@ class Recipes extends React.Component {
       newRecipes.forEach((recipe) => {
         recipe.favorite ? favoriteRecipes.push(recipe) : null;
       });
-      this.props.actions(newRecipes);
+      this.props.changeRecipes(newRecipes);
       this.setState({ recipes: newRecipes, displayRecipes: this.sortRecipes(newRecipes, favoriteRecipes), favoriteRecipes: favoriteRecipes });
       // this.assignIds(r);
 
     });
+  }
+
+  getCookbooks = async () => {
+    let cookbooks = await ReadCookbooksFromFile();
+    console.log(cookbooks);
+    if(cookbooks) {
+      this.props.changeCookbooks(cookbooks);
+    }
   }
 
   fixDirections = async (recipes) => {
@@ -336,8 +344,6 @@ class Recipes extends React.Component {
   }
 
   render() {
-    console.log('recipes in render:');
-    console.log(this.props.recipes);
     let selectedIndex = 1;
     const { showSearch, recipes, displayRecipes, showFullRecipe } = this.state;
 
@@ -367,6 +373,8 @@ class Recipes extends React.Component {
               }
               placeholder='Search...'
               onChangeText={this.recipeSearch}
+              returnKeyType="search"
+              clearButtonMode="always"
             />
             <View style={{ position: 'absolute', right: 8, marginTop: 3 }}>
               <Button
@@ -417,17 +425,14 @@ class Recipes extends React.Component {
 }
 
 const mapStateToProps = (state) => {
-  console.log('here in map');
   return ({
     recipes: state.recipes,
+    cookbooks: state.cookbooks,
   });
 }
 
 const mapDispatchToProps = dispatch => {
-  console.log("here in dispath to props");
-  return ({
-    actions: bindActionCreators(changeRecipes, dispatch),
-  });
+  return (bindActionCreators({changeRecipes, changeCookbooks}, dispatch));
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Recipes);

@@ -46,10 +46,9 @@ export default class EditIngredients extends React.Component {
                 style={[styles.textInput, { width: '90%', fontSize: 14, marginBottom: 7 }]}
                 onChangeText={(text) => this.handleIngredientChange(text, index)}
                 value={ingredient.title}
-                onSubmitEditing={() => {
-                  // index+1 === ingredients.length && this.addIngredient();
-                }}
                 key={index}
+                textContentType="oneTimeCode"
+                importantForAutofill="no"
               />
               {index > 0 || ingredients.length > 1 ? (
                 <View style={{ marginTop: 6, marginLeft: 8 }}>

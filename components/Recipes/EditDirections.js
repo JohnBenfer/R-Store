@@ -55,6 +55,7 @@ export default class EditDirections extends React.Component {
                 // index + 1 === ingredients.length && this.addDirection();
               }}
               key={index}
+              multiline={true}
             />
             {index > 0 || directions.length > 1 ? (
               <View style={{ marginTop: 6, marginLeft: 8 }}>

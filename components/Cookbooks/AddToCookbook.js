@@ -33,7 +33,7 @@ export default class AddToCookbook extends React.Component {
         </View>
       );
     });
-    cookbooks.push(<View style={{ borderTopWidth: 1 }} />);
+    cookbooks.push(<View key={99} style={{ borderTopWidth: 1 }} />);
     return cookbooks;
   }
 

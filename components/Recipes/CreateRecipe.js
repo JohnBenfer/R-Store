@@ -19,6 +19,7 @@ const propTypes = {
 export default class CreateRecipeModal extends React.Component {
   ingredientRef = React.createRef();
   photoListRef = React.createRef();
+  descriptionRef = React.createRef();
 
   constructor(props) {
     super(props);
@@ -140,6 +141,8 @@ export default class CreateRecipeModal extends React.Component {
                   autoFocus={true}
                   onChangeText={(text) => this.changeTitle(text)}
                   value={this.state.title}
+                  onSubmitEditing={() => this.descriptionRef.current.focus()}
+                  returnKeyType="next"
                 />
                 {titleError ?
                   <Text style={{ color: 'red' }}>
@@ -153,6 +156,8 @@ export default class CreateRecipeModal extends React.Component {
                 <TextInput
                   style={[styles.textInput, { width: '100%', fontSize: 14 }]}
                   onChangeText={(text) => this.setState({ description: text })}
+                  ref={this.descriptionRef}
+                  multiline={true}
                 />
               </View>
               <Text style={{ marginTop: 15, marginBottom: 5, paddingHorizontal: 15, fontSize: 16 }}>
