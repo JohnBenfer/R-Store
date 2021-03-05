@@ -82,7 +82,7 @@ class Recipes extends React.Component {
       newRecipes.forEach((recipe) => {
         recipe.favorite ? favoriteRecipes.push(recipe) : null;
       });
-      this.props.changeRecipes(newRecipes);
+      // this.props.changeRecipes(newRecipes);
       this.setState({ recipes: newRecipes, displayRecipes: this.sortRecipes(newRecipes, favoriteRecipes), favoriteRecipes: favoriteRecipes });
       // this.assignIds(r);
 

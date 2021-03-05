@@ -1,2 +1,3 @@
 export const RECIPES_CHANGE = 'RECIPES_CHANGE';
 export const COOKBOOKS_CHANGE = 'COOKBOOKS_CHANGE';
+export const USER_CHANGE = 'USER_CHANGE';

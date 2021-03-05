@@ -9,12 +9,26 @@ import { LogBox } from 'react-native';
 import SignUp from './components/SignUp';
 import { Provider } from 'react-redux';
 import configureStore from './redux/store/configureStore';
+import * as firebase from 'firebase';
+import * as secret from './secret';
 
 const Stack = createStackNavigator();
 const store = configureStore();
 
+const firebaseConfig = {
+  apiKey: secret.API_KEY,
+  authDomain: "r-store-v1.firebaseapp.com",
+  projectId: "r-store-v1",
+  storageBucket: "r-store-v1.appspot.com",
+  messagingSenderId: "456832680520",
+  appId: "1:456832680520:web:811dc91e6064dac3f10e7d"
+};
+
 export default function App() {
   const navigationRef = React.useRef();
+  if (firebase.apps.length === 0) {
+    firebase.initializeApp(firebaseConfig);
+  }
   LogBox.ignoreLogs(['Non-serializable values were found in the navigation state.',
     'Error: Native splash screen is already hidden.',
     'VirtualizedLists should never be nested inside plain ScrollViews with the same orientation']); // Ignore log notification by message

@@ -1,10 +1,16 @@
 import React from 'react';
 import { SafeAreaView, StyleSheet, View, TextInput, KeyboardAvoidingView, ScrollView, Dimensions } from 'react-native';
 import { Text, Icon, Button } from 'react-native-elements';
+import * as firebase from 'firebase';
 import * as FileSystem from 'expo-file-system';
 import * as SplashScreen from 'expo-splash-screen';
-import { RecipesPath } from '../Constants';
-import { ReadRecipesFromFile, ReadCookbooksFromFile, ReadUserFromFile } from '../Util';
+import { connect } from 'react-redux';
+import { changeRecipes } from '../redux/actions/changeRecipes';
+import { changeCookbooks } from '../redux/actions/changeCookbooks';
+import { changeUser } from '../redux/actions/chageUser';
+import { bindActionCreators } from 'redux';
+import { CookbooksPath, RecipesPath, UserPath } from '../Constants';
+import * as Util from '../Util';
 import Colors from '../Colors';
 
 let user;
@@ -37,6 +43,7 @@ class SignUp extends React.Component {
       confirmPassword: '',
       userAlreadyExists: false,
       validPassword: false,
+      passwordFocused: false,
       passwordMatch: true,
       loginPassword: '',
       loginPasswordError: false,
@@ -57,7 +64,7 @@ class SignUp extends React.Component {
     //   this.props.navigation.navigate('Root', {  });
     // });
 
-    // this.initialLoad();
+    this.initialLoad();
 
 
 
@@ -65,10 +72,9 @@ class SignUp extends React.Component {
   }
 
   initialLoad = async () => {
-    let navigate = true;
-    const cookbooks = await ReadCookbooksFromFile();
-    const recipes = await ReadRecipesFromFile();
-    const user = await ReadUserFromFile();
+    const cookbooks = await Util.ReadCookbooksFromFile();
+    const recipes = await Util.ReadRecipesFromFile();
+    const user = await Util.ReadUserFromFile();
 
     if (cookbooks && recipes && user) {
       this.props.navigation.navigate('Root', {});
@@ -76,18 +82,41 @@ class SignUp extends React.Component {
     }
 
     if (!cookbooks) {
-      navigate = false;
-      FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify({ cookbooks: [] }));
+      await FileSystem.writeAsStringAsync(CookbooksPath, JSON.stringify({ cookbooks: [] }));
     }
     if (!recipes) {
-      navigate = false;
-      FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify({ recipes: [] }));
+      await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify({ recipes: [] }));
     }
     if (!user) {
       SplashScreen.hideAsync();
-      navigate = false;
-      FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify({ user: {} }));
+      console.log('user does not exist');
       this.setState({ userExists: false });
+    } else {
+      this.props.changeCookbooks(cookbooks);
+      const newRecipes = this.fixDirections(recipes.reverse());
+      this.props.changeRecipes(newRecipes);
+      this.props.changeUser(user)
+      this.props.navigation.navigate('Root', {});
+    }
+
+  }
+
+  fixDirections = async (recipes) => {
+    if (!recipes[0]?.directions[0]?.title) {
+      let newRecipes = [];
+      recipes.forEach((recipe) => {
+        let newDirections = [];
+        recipe.directions.forEach((direction) => {
+          newDirections.push({ title: direction, groupId: 0 });
+        });
+        recipe.directions = newDirections;
+        newRecipes.push(recipe);
+      });
+      await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify({ recipes: newRecipes }));
+      console.log(newRecipes);
+      return newRecipes;
+    } else {
+      return recipes;
     }
   }
 
@@ -128,34 +157,76 @@ class SignUp extends React.Component {
     this.setState({ confirmPassword: text });
   }
 
-  createAccountPress = () => {
+  createAccountPress = async () => {
     const { firstName, lastName, email, password, confirmPassword, passwordMatch } = this.state;
     this.setState({ firstNameError: false, lastNameError: false, emailError: false });
+    let error = false;
     if(firstName.trim().length === 0) {
       this.setState({ firstNameError: true });
+      error = true;
     }
     if(lastName.trim().length === 0) {
       this.setState({ lastNameError: true });
+      error = true;
     }
     if(email.trim().length === 0 || !email.includes('@') || !email.includes('.')) {
       this.setState({ emailError: true });
+      error = true;
+    }
+    if(error) {
+      return;
     }
 
-    // if successfull login...
+    if(!(await Util.IsEmailDuplicate(email))) {
+      const userId = await Util.CreateUserInDB(user);
+      const user = {
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        id: userId
+      };
+      await FileSystem.writeAsStringAsync(UserPath, JSON.stringify({user: user}));
+      this.props.changeUser(user);
+    }
 
   }
 
   loginPress = () => {
     const { loginEmail, loginPassword } = this.state;
-    if(loginEmail.toLowerCase() === 'john' && loginPassword === 'benfer') {
+    const user = Util.GetUserByEmail(loginEmail);
+    const cookbooks;
+    const recipes;
+
+    if(loginEmail.toLowerCase().trim() === 'john' && loginPassword.toLowerCase() === 'benfer') {
       this.props.navigation.navigate('Root', {  });
-    } else {
+    } 
+
+    console.log(user);
+    if(user.password !== loginPassword) {
       this.loginFailed();
+      return;
     }
-    // if failed login...
+
+    const newUser = {
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      id: user.id,
+    }
+    await FileSystem.writeAsStringAsync(UserPath, JSON.stringify({ user: newUser }));
+    // login succedded
+    cookbooks = await Util.GetCookbooksFromDB(user.cookbookIds);
+    recipes = await Util.GetRecipesFromDB(user.recipeIds);
+    if(cookbooks) {
+      this.props.changeCookbooks(cookbooks);
+      await FileSystem.writeAsStringAsync(CookbooksPath, JSON.stringify({ cookbooks: cookbooks }));
+    }
+    if(recipes) {
+      this.props.changeRecipes(recipes);
+      await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify({ recipes: recipes }));
+    }
     
 
-    // if successfull login...
 
   }
 
@@ -265,6 +336,7 @@ class SignUp extends React.Component {
                         clearButtonMode="always"
                         ref={this.emailRef}
                         onSubmitEditing={() => this.passwordRef.current.focus()}
+                        textContentType="emailAddress"
                       />
                     </View>
                     <View style={styles.errorTextContainer}>
@@ -288,6 +360,7 @@ class SignUp extends React.Component {
                       <TextInput
                         style={styles.input}
                         onChangeText={(text) => this.changePassword(text)}
+                        onFocus={() => this.setState({passwordFocused: true})}
                         value={this.state.title}
                         placeholder="Password"
                         placeholderTextColor={Colors.placeholderText}
@@ -300,7 +373,7 @@ class SignUp extends React.Component {
                       />
                     </View>
                     <View style={styles.errorTextContainer}>
-                      {!validPassword ?
+                      {!validPassword && this.state.passwordFocused ?
                         <Text style={styles.errorText}>
                           Invalid Password
                         </Text> :
@@ -417,6 +490,7 @@ class SignUp extends React.Component {
                         clearButtonMode="always"
                         ref={this.loginEmailRef}
                         onSubmitEditing={() => this.loginPasswordRef.current.focus()}
+                        textContentType="emailAddress"
                       />
                     </View>
                     <View style={styles.errorTextContainer}>
@@ -548,4 +622,16 @@ const styles = StyleSheet.create({
   }
 });
 
-export default SignUp;
+const mapStateToProps = (state) => {
+  return ({
+    recipes: state.recipes,
+    cookbooks: state.cookbooks,
+    user: state.user,
+  });
+}
+
+const mapDispatchToProps = dispatch => {
+  return (bindActionCreators({changeRecipes, changeCookbooks, changeUser}, dispatch));
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(SignUp);
