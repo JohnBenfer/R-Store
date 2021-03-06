@@ -20,6 +20,7 @@ const firebaseConfig = {
   authDomain: "r-store-v1.firebaseapp.com",
   projectId: "r-store-v1",
   storageBucket: "r-store-v1.appspot.com",
+  databaseURL: "https://r-store-v1-default-rtdb.firebaseio.com/",
   messagingSenderId: "456832680520",
   appId: "1:456832680520:web:811dc91e6064dac3f10e7d"
 };

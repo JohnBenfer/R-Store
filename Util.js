@@ -1,6 +1,7 @@
 import { UserPath, RecipesPath, CookbooksPath } from './Constants';
 import * as FileSystem from 'expo-file-system';
 import * as firebase from 'firebase';
+import userReducer from './redux/reducers/userReducer';
 
 
 // ---------------------------------------- User ----------------------------------------
@@ -30,20 +31,26 @@ export async function WriteUserToFile(user) {
  * @returns the userId
  */
 export async function CreateUserInDB(user) {
+  console.log('here');
+  console.log(user);
   const userRef = firebase.database().ref("User").push();
-  const userId = null;
-  (await userRef).set({
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
-    password: user.password,
-    recipeIds: [],
-    cookbookIds: [],
-  }).then(() => {
-    userId = userRef.toString().replace("https://r-store-v1-default-rtdb.firebaseio.com/User/", "");
-  });
-
-  return userId;
+  let userId = null;
+  return new Promise(async resolve => {
+    (await userRef).set({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      password: user.password,
+      recipeIds: [],
+      cookbookIds: [],
+    }).then(() => {
+  
+      userId = userRef.toString().replace("https://r-store-v1-default-rtdb.firebaseio.com/User/", "");
+      console.log("userid in create user");
+      console.log(userId);
+      resolve(userId);
+    });
+  })
 }
 
 /**
@@ -55,14 +62,22 @@ export async function CreateUserInDB(user) {
 export async function IsEmailDuplicate(email) {
   let existingUsers;
   const userRef = firebase.database().ref("User");
-  await userRef.orderByChild('email').equalTo(email).once('value').then((users) => {
-    existingUsers = users;
+  return new Promise( async resolve => {
+    await userRef.orderByChild('email').equalTo(email).once('value').then((users) => {
+      existingUsers = JSON.stringify(users);
+      console.log('users by email');
+      console.log(existingUsers);
+      if (!existingUsers || existingUsers === 'null') {
+        resolve(false);
+      } else {
+        resolve(true);
+      }
+    }).catch((e) => {
+      console.log('error..');
+      console.log(e);
+      resolve(null);
+    });
   });
-  if(!existingUsers || existingUsers === 'null') {
-    return false;
-  } else {
-    return true;
-  }
 }
 
 /**
@@ -75,7 +90,7 @@ export async function GetUserByEmail(email) {
   const userRef = firebase.database().ref("User");
   await userRef.orderByChild('email').equalTo(email).once('value').then((users) => {
     const userString = JSON.stringify(users);
-    if(!userString || userString === 'null') {
+    if (!userString || userString === 'null') {
       return null;
     } else {
       const user = JSON.parse(users);
@@ -113,6 +128,68 @@ export async function WriteRecipesToFile(recipes) {
  * @returns the array of recipes
  */
 export async function GetRecipesFromDB(recipeIds) {
+
+}
+
+/**
+ * Adds the new recipe to recipe table and updates user recipe Ids
+ * 
+ * @param {object} recipe the recipe to add to db
+ * @param {string} userId the user's Id
+ * @param {array} recipeIds the user's existing recipeIds. The new recipe will be added to this array and update the User in db.
+ * @returns the recipeId if created, otherwise null
+ */
+export async function AddRecipeToDB(recipe, userId, recipeIds) {
+  const recipeRef = firebase.database().ref("Recipe").push();
+  return new Promise( async resolve => {
+    (await recipeRef).set(recipe).then(async () => {
+      const userRef = firebase.database().ref("User/" + userId);
+      const recipeId = recipeRef.toString().replace("https://r-store-v1-default-rtdb.firebaseio.com/Recipe/", "");
+      recipeIds.push(recipeId);
+      await userRef.update({ recipeIds: recipeIds});
+      resolve(recipeId);
+    }).catch(() => {
+      resolve(null);
+    });
+  });
+}
+
+/**
+ * Remove recipe from recipe table and updates user recipe Ids
+ * 
+ * @param {object} recipeId the recipe id to remove from db and user
+ * @param {string} userId the user's Id
+ * @param {array} recipeIds the user's existing recipeIds. The new recipe will be added to this array and update the User in db.
+ * @returns the recipeId if created, otherwise null
+ */
+export async function RemoveRecipeFromDB(recipeId, userId, recipeIds) {
+  return new Promise( async (resolve, reject) => {
+    await firebase.database().ref("Recipe/" + recipeId).set(null).then(async () => {
+      const userRef = firebase.database().ref("User/" + userId);
+      recipeIds.splice(recipeIds.indexOf(recipeId), 1);
+      await userRef.update({ recipeIds: recipeIds});
+      resolve(true);
+    }).catch(() => {
+      reject(new Error("db fail")); 
+    });
+  });
+}
+
+/**
+ * Updates the recipe in the db
+ * 
+ * @param {object} recipe the updated recipe object
+ */
+export async function EditRecipeInDB(recipe) {
+  const recipeRef = firebase.database().ref("Recipe/" + recipe.id);
+  delete recipe.id;
+  return new Promise(async (resolve, reject) => {
+    recipeRef.set(recipe).then(() => {
+      resolve(true);
+    }).catch(() => {
+      reject(new Error("db fail"));
+    });
+  });
   
 }
 

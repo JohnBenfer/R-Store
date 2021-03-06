@@ -46,27 +46,13 @@ export default class CreateRecipeModal extends React.Component {
     if (titleError || descriptionError) {
       return;
     }
-    let recipes;
-    await FileSystem.readAsStringAsync(RecipesPath).then((res) => {
-      recipes = JSON.parse(res);
-    }).catch(() => {
-      console.log('error reading recipes file');
-    });
     const newRecipe = {
-      id: this.props.route.params.generateId(),
       title: title.trim(),
       description: description.trim(),
       ingredients: finalIngredients,
       directions: finalDirections,
       images: images,
     }
-    const newRecipes = {
-      recipes: [
-        ...recipes.recipes,
-        newRecipe
-      ]
-    };
-    await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify(newRecipes));
 
     this.props.route.params.addRecipe(newRecipe);
     this.props.navigation.goBack();

@@ -7,7 +7,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { connect } from 'react-redux';
 import { changeRecipes } from '../redux/actions/changeRecipes';
 import { changeCookbooks } from '../redux/actions/changeCookbooks';
-import { changeUser } from '../redux/actions/chageUser';
+import { changeUser } from '../redux/actions/changeUser';
 import { bindActionCreators } from 'redux';
 import { CookbooksPath, RecipesPath, UserPath } from '../Constants';
 import * as Util from '../Util';
@@ -54,21 +54,15 @@ class SignUp extends React.Component {
     };
   }
 
-  componentDidMount() {
-    SplashScreen.hideAsync();
-    // FileSystem.readAsStringAsync(RecipesPath).then((res) => {
-    //   this.props.navigation.navigate('Root', {  });
-    // }).catch(() => {
-    //   console.log('creating new recipes file');
-    //   FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify({recipes: []}));
-    //   this.props.navigation.navigate('Root', {  });
-    // });
+  async componentDidMount() {
 
+    // await this.deleteUserFile();
     this.initialLoad();
 
+  }
 
-
-
+  deleteUserFile = async () => {
+    await FileSystem.deleteAsync(UserPath);
   }
 
   initialLoad = async () => {
@@ -77,6 +71,9 @@ class SignUp extends React.Component {
     const user = await Util.ReadUserFromFile();
 
     if (cookbooks && recipes && user) {
+      this.props.changeUser(user.user);
+      const newRecipes = await this.fixDirections(recipes.recipes.reverse());
+      this.props.changeRecipes(newRecipes);
       this.props.navigation.navigate('Root', {});
       return;
     }
@@ -95,7 +92,7 @@ class SignUp extends React.Component {
       this.props.changeCookbooks(cookbooks);
       const newRecipes = this.fixDirections(recipes.reverse());
       this.props.changeRecipes(newRecipes);
-      this.props.changeUser(user)
+      this.props.changeUser(user.user);
       this.props.navigation.navigate('Root', {});
     }
 
@@ -176,26 +173,44 @@ class SignUp extends React.Component {
     if(error) {
       return;
     }
-
-    if(!(await Util.IsEmailDuplicate(email))) {
-      const userId = await Util.CreateUserInDB(user);
+    let isDup;
+    await Util.IsEmailDuplicate(email).then((dup) => {
+      isDup = dup;
+    });
+    console.log('is Dup?');
+    console.log(isDup);
+    if(isDup === false) {
+      const userToAdd = {
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        password: password,
+      }
+      let userId;
+      await Util.CreateUserInDB(userToAdd).then((id) => {
+        userId = id;
+      });
       const user = {
         firstName: firstName,
         lastName: lastName,
         email: email,
         id: userId
       };
+      console.log("user after created in db");
+      console.log(user);
       await FileSystem.writeAsStringAsync(UserPath, JSON.stringify({user: user}));
       this.props.changeUser(user);
+      this.props.navigation.navigate('Root', {});
+    } else if(isDup === true) {
+      this.setState({ emailError: true });
     }
 
   }
 
-  loginPress = () => {
+  loginPress = async () => {
     const { loginEmail, loginPassword } = this.state;
-    const user = Util.GetUserByEmail(loginEmail);
-    const cookbooks;
-    const recipes;
+    const user = await Util.GetUserByEmail(loginEmail);
+
 
     if(loginEmail.toLowerCase().trim() === 'john' && loginPassword.toLowerCase() === 'benfer') {
       this.props.navigation.navigate('Root', {  });
@@ -205,7 +220,8 @@ class SignUp extends React.Component {
     if(user.password !== loginPassword) {
       this.loginFailed();
       return;
-    }
+    } 
+    // login succedded
 
     const newUser = {
       firstName: user.firstName,
@@ -214,9 +230,9 @@ class SignUp extends React.Component {
       id: user.id,
     }
     await FileSystem.writeAsStringAsync(UserPath, JSON.stringify({ user: newUser }));
-    // login succedded
-    cookbooks = await Util.GetCookbooksFromDB(user.cookbookIds);
-    recipes = await Util.GetRecipesFromDB(user.recipeIds);
+    
+    const cookbooks = await Util.GetCookbooksFromDB(user.cookbookIds);
+    const recipes = await Util.GetRecipesFromDB(user.recipeIds);
     if(cookbooks) {
       this.props.changeCookbooks(cookbooks);
       await FileSystem.writeAsStringAsync(CookbooksPath, JSON.stringify({ cookbooks: cookbooks }));
@@ -226,7 +242,9 @@ class SignUp extends React.Component {
       await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify({ recipes: recipes }));
     }
     
+    this.props.changeUser(newUser);
 
+    this.props.navigation.navigate('Root', {  });
 
   }
 

@@ -5,6 +5,7 @@ import * as Haptics from 'expo-haptics';
 import { connect } from 'react-redux';
 import { changeRecipes } from '../../redux/actions/changeRecipes';
 import { changeCookbooks } from '../../redux/actions/changeCookbooks';
+import { changeUser } from '../../redux/actions/changeUser';
 import { bindActionCreators } from 'redux';
 import RecipeCard from './RecipeCard';
 import * as FileSystem from 'expo-file-system';
@@ -13,7 +14,7 @@ import { RecipesPath } from '../../Constants';
 import Constants from 'expo-constants';
 import { DEFAULT_CARD_HEIGHT, CARD_HEIGHT, MARGIN } from '../../Constants';
 import FiveCookbooks from '../../FiveCookbooks.json';
-import { ReadCookbooksFromFile, ReadRecipesFromFile, WriteCookbooksToFile, WriteRecipesToFile } from '../../Util';
+import * as Util from '../../Util';
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 const BOTTOM_TABS = 90;
@@ -53,6 +54,9 @@ class Recipes extends React.Component {
     setTimeout(() => SplashScreen.hideAsync(), 500);
     this.getRecipes();
     this.getCookbooks();
+
+    console.log('user in recipes:');
+    console.log(this.props.user?.user.id);
     // prevents going back to signup page
     this.props.navigation.setOptions({
       headerRight: () => (
@@ -76,21 +80,14 @@ class Recipes extends React.Component {
 
   getRecipes = async () => {
     let favoriteRecipes = [];
-    FileSystem.readAsStringAsync(RecipesPath).then(async (res) => {
-      let r = JSON.parse(res).recipes.reverse();
-      const newRecipes = await this.fixDirections(r);
-      newRecipes.forEach((recipe) => {
-        recipe.favorite ? favoriteRecipes.push(recipe) : null;
-      });
-      // this.props.changeRecipes(newRecipes);
-      this.setState({ recipes: newRecipes, displayRecipes: this.sortRecipes(newRecipes, favoriteRecipes), favoriteRecipes: favoriteRecipes });
-      // this.assignIds(r);
-
+    this.props.recipes.recipes.forEach((recipe) => {
+      recipe.favorite ? favoriteRecipes.push(recipe) : null;
     });
+    this.setState({ displayRecipes: this.sortRecipes(this.props.recipes.recipes, favoriteRecipes), favoriteRecipes: favoriteRecipes });
   }
 
   getCookbooks = async () => {
-    let cookbooks = await ReadCookbooksFromFile();
+    let cookbooks = await Util.ReadCookbooksFromFile();
     console.log(cookbooks);
     if(cookbooks) {
       this.props.changeCookbooks(cookbooks);
@@ -116,33 +113,57 @@ class Recipes extends React.Component {
     }
   }
 
-  assignIds = async (recipes) => {
-    let newRecipes = this.state.recipes;
-    recipes.forEach((r) => {
-      if (!r.id) {
-        newRecipes[recipes.indexOf(r)].id = this.generateId(recipes);
-      }
-    });
-    console.log(newRecipes);
-    await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify({ recipes: newRecipes }));
-  }
+  // assignIds = async (recipes) => {
+  //   let newRecipes = this.state.recipes;
+  //   recipes.forEach((r) => {
+  //     if (!r.id) {
+  //       newRecipes[recipes.indexOf(r)].id = this.generateId(recipes);
+  //     }
+  //   });
+  //   console.log(newRecipes);
+  //   await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify({ recipes: newRecipes }));
+  // }
 
   generateId = (recipes) => {
     // Math.random should be unique because of its seeding algorithm.
     // Convert it to base 36 (numbers + letters), and grab the first 9 characters
     // after the decimal.
     const id = '_' + Math.random().toString(36).substr(2, 9);
-    this.state.recipes.forEach(r => {
+    this.props.recipes.recipes.forEach(r => {
       r.id === id ? this.generateId() : null;
     });
     return id;
   }
 
-  addRecipe = (recipe) => {
-    let { recipes, displayRecipes } = this.state;
+  addRecipe = async (recipe) => {
+    let { recipes } = this.props.recipes;
+    let recipeId;
+    await Util.AddRecipeToDB(recipe, this.props.user.user.id, this.getRecipeIds()).then((id) => {
+      recipeId = id;
+    });
+    if(!recipeId) {
+      console.log('error creating recipe');
+      return;
+    }
+    recipe.id = recipeId;
     recipes.unshift(recipe);
-    // displayRecipes.push(recipe);
-    this.setState({ recipes: recipes, displayRecipes: this.sortRecipes(recipes, this.state.favoriteRecipes) });
+    console.log('new recipe: ');
+    console.log(recipe);
+    this.setState({ displayRecipes: this.sortRecipes(recipes, this.state.favoriteRecipes) });
+    this.props.changeRecipes(recipes);
+    let oldRecipes;
+    await FileSystem.readAsStringAsync(RecipesPath).then((res) => {
+      oldRecipes = JSON.parse(res);
+    }).catch(() => {
+      console.log('error reading recipes file');
+    });
+    const newRecipes = {
+      recipes: [
+        ...oldRecipes.recipes,
+        recipe
+      ]
+    };
+    await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify(newRecipes));
     setTimeout(() => this.flatListRef.current.scrollToIndex({ index: this.state.favoriteRecipes.length, viewPosition: 0.5 }), 500);
   }
 
@@ -202,10 +223,12 @@ class Recipes extends React.Component {
     displayRecipes[oldDisplayRecipeIndex].images = newRecipe.images;
 
     displayRecipes = this.sortRecipes(displayRecipes, favoriteRecipes);
-    this.setState({ recipes: recipes, displayRecipes: displayRecipes });
+    this.setState({ displayRecipes: displayRecipes });
+    this.props.changeRecipes(recipes);
     const newRecipes = {
       recipes: recipes
     };
+    Util.EditRecipeInDB(newRecipe);
     await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify(newRecipes));
     // close and open recipe card to rerender updates
   }
@@ -217,7 +240,7 @@ class Recipes extends React.Component {
         this.flatListRef.current.scrollToIndex({ index: 0 });
       }
       LayoutAnimation.easeInEaseOut();
-      this.setState({ displayRecipes: this.sortRecipes(this.state.recipes, this.state.favoriteRecipes) });
+      this.setState({ displayRecipes: this.sortRecipes(this.props.recipes.recipes, this.state.favoriteRecipes) });
       return;
     }
     let text = searchText.toLowerCase().trim();
@@ -226,7 +249,7 @@ class Recipes extends React.Component {
     let newRecipes2 = [];
     let newRecipes3 = [];
     let match = false;
-    this.state.recipes.forEach((recipe) => {
+    this.props.recipes.recipes.forEach((recipe) => {
       match = false;
       if (recipe.title.toLowerCase().startsWith(text)) {
         newRecipes.push(recipe);
@@ -257,7 +280,7 @@ class Recipes extends React.Component {
       setTimeout(() => this.flatListRef.current.scrollToIndex({ index: 0 }), 15);
     }
     this.searchRef.current.blur();
-    const sortedRecipes = this.sortRecipes(this.state.recipes, this.state.favoriteRecipes);
+    const sortedRecipes = this.sortRecipes(this.props.recipes, this.state.favoriteRecipes);
     this.setState({ showSearch: false, displayRecipes: sortedRecipes, searchText: '' });
   }
 
@@ -281,7 +304,8 @@ class Recipes extends React.Component {
   }
 
   deleteRecipe = async (recipe) => {
-    let { recipes, displayRecipes, favoriteRecipes } = this.state;
+    let { displayRecipes, favoriteRecipes } = this.state;
+    let { recipes } = this.props.recipes;
     console.log('recipe delete');
     console.log(recipe.title);
 
@@ -298,6 +322,7 @@ class Recipes extends React.Component {
     const newRecipes = {
       recipes: oldRecipes
     };
+    await Util.RemoveRecipeFromDB(recipe.id, this.props.user.user.id, this.getRecipeIds())
     await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify(newRecipes));
     // remove from displayRecipes state
     displayRecipes.splice(displayRecipes.indexOf(displayRecipes.find((r) => r.id === recipe.id)), 1);
@@ -305,10 +330,20 @@ class Recipes extends React.Component {
     recipes.splice(recipes.indexOf(recipes.find((r) => r.id === recipe.id)), 1);
     // remove from favorite recipes
     favoriteRecipes.splice(favoriteRecipes.indexOf(favoriteRecipes.find((r) => r.id === recipe.id)), 1);
-    this.setState({ recipes: recipes, displayRecipes: displayRecipes, favoriteRecipes: favoriteRecipes });
+    this.setState({ displayRecipes: displayRecipes, favoriteRecipes: favoriteRecipes });
+    this.props.changeRecipes(recipes);
 
   }
 
+  getRecipeIds = () => {
+    let ids = [];
+    this.props.recipes.recipes.forEach((recipe) => {
+      ids.push(recipe.id);
+    });
+    return ids;
+  }
+
+  // ------------------------------------------------------------ needs refactored ------------------------------------------------------------ //
   handleRecipeFavoritePress = async (recipe, index) => {
     let { favoriteRecipes, displayRecipes } = this.state;
     let recipes;
@@ -336,7 +371,8 @@ class Recipes extends React.Component {
       index: displayRecipes.indexOf(displayRecipes.find((r) => r.id === recipe.id)),
       viewPosition: 0.5
     });
-    this.setState({ recipes: recipes, displayRecipes: displayRecipes, favoriteRecipes: favoriteRecipes });
+    this.setState({ displayRecipes: displayRecipes, favoriteRecipes: favoriteRecipes });
+    this.props.changeRecipes(recipes);
     const newRecipes = {
       recipes: recipes
     };
@@ -345,7 +381,8 @@ class Recipes extends React.Component {
 
   render() {
     let selectedIndex = 1;
-    const { showSearch, recipes, displayRecipes, showFullRecipe } = this.state;
+    const { showSearch, displayRecipes, showFullRecipe } = this.state;
+    const { recipes } = this.props.recipes;
 
     const onScroll = Animated.event([{ nativeEvent: { contentOffset: { y: this.y } } }], {
       useNativeDriver: true,
@@ -428,11 +465,12 @@ const mapStateToProps = (state) => {
   return ({
     recipes: state.recipes,
     cookbooks: state.cookbooks,
+    user: state.user,
   });
 }
 
 const mapDispatchToProps = dispatch => {
-  return (bindActionCreators({changeRecipes, changeCookbooks}, dispatch));
+  return (bindActionCreators({changeRecipes, changeCookbooks, changeUser}, dispatch));
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Recipes);
