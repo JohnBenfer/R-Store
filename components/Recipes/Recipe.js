@@ -163,9 +163,9 @@ export default class Inventory extends React.Component {
           style={{ paddingBottom: 0, height: '100%', width: width }}
           stickyHeaderIndices={[0]}
         >
-          {recipe.images.length > 0 ?
+          {recipe.images?.length > 0 ?
             <View>
-              {this.renderPagination(recipe.images.length)}
+              {this.renderPagination(recipe.images?.length)}
               <FlatList
                 data={recipe.images}
                 horizontal
@@ -186,7 +186,7 @@ export default class Inventory extends React.Component {
               />
             </View>
             : null}
-          <View style={[{ flexDirection: 'row', zIndex: 100, marginTop: titleOverflow && recipe.images.length > 0 ? -80 : recipe.images.length > 0 ? -50 : 0, paddingHorizontal: 10, paddingTop: recipe.images.length === 0 ? 10 : 0, paddingRight: recipe.images.length > 0 ? 0 : 0, backgroundColor: recipe.images.length === 0 ? '#fff' : null }]}>
+          <View style={[{ flexDirection: 'row', zIndex: 100, marginTop: titleOverflow && recipe.images?.length > 0 ? -80 : recipe.images?.length > 0 ? -50 : 0, paddingHorizontal: 10, paddingTop: recipe.images?.length > 0 ? 0 : 10, paddingRight: recipe.images?.length > 0 ? 0 : 0, backgroundColor: recipe.images?.length > 0 ? null : '#fff' }]}>
             <View>
               <View
                 style={{ zIndex: 100, paddingRight: 70 }}
@@ -197,14 +197,14 @@ export default class Inventory extends React.Component {
                     this.setState({ titleOverflow: true });
                   }
                 }}>
-                <Text style={[styles.title, { color: recipe.images.length > 0 ? 'white' : '#000', zIndex: 1000 }]} >
+                <Text style={[styles.title, { color: recipe.images?.length > 0 ? 'white' : '#000', zIndex: 1000 }]} >
                   {recipe.title}
                 </Text>
               </View>
-              {recipe.images.length > 0 ?
+              {recipe.images?.length > 0 ?
                 <LinearGradient
                   colors={['transparent', '#000000']}
-                  style={{ zIndex: 10, position: 'absolute', top: 0, height: 100, width: Dimensions.get("window").width, opacity: 0.8, marginTop: titleOverflow && recipe.images.length > 0 ? -27 : -60, marginLeft: -10 }}
+                  style={{ zIndex: 10, position: 'absolute', top: 0, height: 100, width: Dimensions.get("window").width, opacity: 0.8, marginTop: titleOverflow && recipe.images?.length > 0 ? -27 : -60, marginLeft: -10 }}
                 /> :
                 null}
             </View>

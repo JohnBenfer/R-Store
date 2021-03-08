@@ -113,7 +113,7 @@ const RecipeCard = (props) => {
     >
       <Pressable onPress={() => props.handleRecipePress(recipe, index)} onLongPress={() => props.handleRecipeLongPress(recipe, index)} delayLongPress={250}>
 
-        {recipe.images.length > 0 ? (
+        {recipe.images?.length > 0 ? (
           <ImageBackground source={{ uri: recipe.images[0] }} style={{ width: '100%', height: DEFAULT_CARD_HEIGHT, overflow: 'hidden' }} imageStyle={{ borderRadius: 30, overflow: 'hidden' }} >
             <View style={{ overflow: 'hidden', borderRadius: 30, }}>
               <LinearGradient colors={['#000', 'transparent']} style={{ overflow: 'hidden', height: 110, width: '100%', opacity: 0.8, borderTopLeftRadius: 30, borderTopRightRadius: 30 }} >

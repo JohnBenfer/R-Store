@@ -4,7 +4,7 @@ import * as firebase from 'firebase';
 import userReducer from './redux/reducers/userReducer';
 
 
-// ---------------------------------------- User ----------------------------------------
+// -------------------------------------------------------------------------------- User --------------------------------------------------------------------------------
 
 export async function ReadUserFromFile() {
   let returnUser;
@@ -24,7 +24,7 @@ export async function WriteUserToFile(user) {
   });
 }
 
-/**
+/** ------------------ Works ------------------
  * Takes user object and adds it to the database
  * 
  * @param {object} user user with firstName, lastName, email, password
@@ -53,7 +53,7 @@ export async function CreateUserInDB(user) {
   })
 }
 
-/**
+/** ------------------ Works ------------------
  * Checks for email address in DB
  * 
  * @param {string} email user email address
@@ -88,20 +88,25 @@ export async function IsEmailDuplicate(email) {
  */
 export async function GetUserByEmail(email) {
   const userRef = firebase.database().ref("User");
-  await userRef.orderByChild('email').equalTo(email).once('value').then((users) => {
-    const userString = JSON.stringify(users);
-    if (!userString || userString === 'null') {
-      return null;
-    } else {
-      const user = JSON.parse(users);
-      user.id = users.key();
-      return user;
-    }
+  return new Promise(async (resolve, reject) => {
+    await userRef.orderByChild('email').equalTo(email.toLowerCase()).once('value').then((users) => {
+      const userString = JSON.stringify(users);
+      if (!userString || userString === 'null') {
+        reject(new Error("no user found"));
+      } else {
+        let returnUser;
+        users.forEach((u) => {
+          returnUser = { ...u.val(), id: u.key }
+        });
+        console.log("returnUser:");
+        console.log(returnUser);
+        resolve(returnUser);
+      }
+    });
   });
-
 }
 
-// ---------------------------------------- Recipes ----------------------------------------
+// -------------------------------------------------------------------------------- Recipes --------------------------------------------------------------------------------
 
 export async function ReadRecipesFromFile() {
   let returnRecipes;
@@ -121,17 +126,51 @@ export async function WriteRecipesToFile(recipes) {
   });
 }
 
-/**
- * Gets the recipes from the database from the ids
+/** ------------------ Works ------------------
+ * Gets the recipes from the database from the ids. If ids are empty then use userId
  * 
  * @param {array} recipeIds the recipe ids to retrieve
+ * @param {string} userId the user to get recipes for if recipeIds is empty
  * @returns the array of recipes
  */
-export async function GetRecipesFromDB(recipeIds) {
-
+export async function GetRecipesFromDB(recipeIds, userId) {
+  const recipeRef = firebase.database().ref("Recipe");
+  if(!recipeIds || recipeIds.length === 0) {
+    const recipeIdsRef = firebase.database().ref("User/" + userId + "/recipeIds");
+    return new Promise( async (resolve, reject) => {
+      recipeIdsRef.once('value').then((ids) => {
+        if(ids.val() === 'null' || !ids.val()) {
+          reject(new Error("Invalid user id"));
+        }
+        let promises = ids.val().map( async (id) => {
+          return recipeRef.child(id).once("value").catch(() => console.log("invalid recipe: " + id));
+        });
+        Promise.all(promises).then(async (snapshots) => {
+          let recipeBuilder = [];
+          snapshots.forEach((recipe) => {
+            recipeBuilder.push({ id: recipe.key, ...recipe.val() });
+          });
+          resolve(recipeBuilder);
+        });
+      });
+    });
+  } else {
+    return new Promise(async resolve => {
+      let promises = recipeIds.map( async (id) => {
+        return recipeRef.child(id).once("value").catch(() => console.log("invalid recipe: " + id));
+      });
+      Promise.all(promises).then(async (snapshots) => {
+        let recipeBuilder = [];
+        snapshots.forEach((recipe) => {
+          recipeBuilder.push({ id: recipe.key, ...recipe.val() });
+        });
+        resolve(recipeBuilder);
+      });
+    });
+  }
 }
 
-/**
+/** ------------------ Works ------------------
  * Adds the new recipe to recipe table and updates user recipe Ids
  * 
  * @param {object} recipe the recipe to add to db
@@ -141,20 +180,44 @@ export async function GetRecipesFromDB(recipeIds) {
  */
 export async function AddRecipeToDB(recipe, userId, recipeIds) {
   const recipeRef = firebase.database().ref("Recipe").push();
+  const recipeId = recipeRef.toString().replace("https://r-store-v1-default-rtdb.firebaseio.com/Recipe/", "");
+  if(recipe.images && recipe.images.length > 0) {
+    addImagesToDB(recipe.images, recipeId, 0);
+  }
   return new Promise( async resolve => {
     (await recipeRef).set(recipe).then(async () => {
       const userRef = firebase.database().ref("User/" + userId);
-      const recipeId = recipeRef.toString().replace("https://r-store-v1-default-rtdb.firebaseio.com/Recipe/", "");
       recipeIds.push(recipeId);
       await userRef.update({ recipeIds: recipeIds});
       resolve(recipeId);
-    }).catch(() => {
-      resolve(null);
+    }).catch((e) => {
+      console.log('error in catch');
+      console.log(e);
+      resolve(e);
     });
   });
 }
 
-/**
+async function addImagesToDB(images, recipeId, startIndex) {
+  const storageRef = firebase.storage().ref();
+  if(images.length < 1 || !images) {
+    return;
+  }
+  images.forEach(async (image, i) => {
+    const response = await fetch(image);
+    const blob = await response.blob();
+    const imageRef = storageRef.child(`recipes/${recipeId}/${i + startIndex}.jpg`);
+    imageRef.put(blob).then(() => {
+      console.log("added image!");
+    });
+  });
+}
+
+async function getImagesFromDB(recipeId, imageCount) {
+  
+}
+
+/** ------------------ Works ------------------
  * Remove recipe from recipe table and updates user recipe Ids
  * 
  * @param {object} recipeId the recipe id to remove from db and user
@@ -175,7 +238,7 @@ export async function RemoveRecipeFromDB(recipeId, userId, recipeIds) {
   });
 }
 
-/**
+/** ------------------ Works ------------------
  * Updates the recipe in the db
  * 
  * @param {object} recipe the updated recipe object
@@ -194,7 +257,7 @@ export async function EditRecipeInDB(recipe) {
 }
 
 
-// ---------------------------------------- Cookbooks ----------------------------------------
+// -------------------------------------------------------------------------------- Cookbooks --------------------------------------------------------------------------------
 
 export async function ReadCookbooksFromFile() {
   let returnCookbooks;
@@ -215,11 +278,72 @@ export async function WriteCookbooksToFile(cookbooks) {
 }
 
 /**
- * Gets the cookbooks from the database from the ids
+ * Gets the cookbooks from the database. If the cookbookIds array is empty, then retrieve the cookbooks based on the userId.
  * 
- * @param {array} cookbookIds the cookbook ids to retrieve
+ * @param {array} cookbookIds the cookbook ids to retrieve. If empty, use userId.
+ * @param {string} userId the user's id to find cookbooks for if cookbook Ids are empty.
  * @returns the array of cookbooks
  */
-export async function GetCookbooksFromDB(cookbookIds) {
-
+export async function GetCookbooksFromDB(cookbookIds, userId) {
+  const cookbookRef = firebase.database().ref("Cookbook");
+  if(!cookbookIds || cookbookIds.length === 0) {
+    const cookbookIdsRef = firebase.database().ref("User/" + userId + "/cookbookIds");
+    
+    cookbookIdsRef.once('value').then((ids) => {
+      console.log('cookbookIds from user in db: ');
+      console.log(ids.val());
+      return ids; // get cookbooks from ids now
+    });
+  } else {
+    let promises = cookbookIds.map( async (id) => {
+      return cookbookRef.child(id).once("value").catch(() => console.log("invalid cookbook: " + id));
+    });
+    Promise.all(promises).then(async (snapshots) => {
+      console.log("cookbooks from ids: ");
+      console.log(snapshots.values());
+      return snapshots.values();
+    });
+  }
 }
+
+/**
+ * Add new cookbook to db and update user's cookbook ids.
+ * 
+ * @param {object} cookbook the cookbook to add to db
+ * @param {string} userId the user's id
+ * @param {array} cookbookIds the existing cookbook ids for the user
+ * @returns the new cookbook id
+ */
+export async function AddCookbookToDB(cookbook, userId, cookbookIds) {
+  const cookbookRef = firebase.database().ref("Cookbook").push();
+  return new Promise( async resolve => {
+    (await cookbookRef).set(cookbook).then(async () => {
+      const userRef = firebase.database().ref("User/" + userId);
+      const cookbookId = cookbookRef.toString().replace("https://r-store-v1-default-rtdb.firebaseio.com/Cookbook/", "");
+      cookbookIds.push(cookbookId);
+      await userRef.update({ cookbookIds: cookbookIds});
+      resolve(cookbookId);
+    }).catch(() => {
+      resolve(null);
+    });
+  });
+}
+
+/**
+ * Updates the cookbook object in the db
+ * 
+ * @param {object} cookbook the updated cookbook object
+ * @returns true if updated in db, otherwise throws error. 
+ */
+export async function EditCookbookInDB(cookbook) {
+  const cookbookRef = firebase.database().ref("Cookbook/" + cookbook.id);
+  delete cookbook.id;
+  return new Promise(async (resolve, reject) => {
+    cookbookRef.set(cookbook).then(() => {
+      resolve(true);
+    }).catch(() => {
+      reject(new Error("db fail"));
+    });
+  });
+}
+

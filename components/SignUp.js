@@ -57,12 +57,26 @@ class SignUp extends React.Component {
   async componentDidMount() {
 
     // await this.deleteUserFile();
+    // await this.deleteRecipeFile();
     this.initialLoad();
+    console.log("in componentDidMount SignUp");
+    this.props.navigation.addListener('focus', () => {
+      // Screen was focused
+      console.log("focused");
 
+    });
   }
 
   deleteUserFile = async () => {
     await FileSystem.deleteAsync(UserPath);
+  }
+
+  deleteRecipeFile = async () => {
+    await FileSystem.deleteAsync(RecipesPath);
+  }
+
+  deleteCookbookFile = async () => {
+    await FileSystem.deleteAsync(CookbooksPath);
   }
 
   initialLoad = async () => {
@@ -71,6 +85,7 @@ class SignUp extends React.Component {
     const user = await Util.ReadUserFromFile();
 
     if (cookbooks && recipes && user) {
+      await firebase.auth().signInAnonymously();
       this.props.changeUser(user.user);
       const newRecipes = await this.fixDirections(recipes.recipes.reverse());
       this.props.changeRecipes(newRecipes);
@@ -200,6 +215,9 @@ class SignUp extends React.Component {
       console.log(user);
       await FileSystem.writeAsStringAsync(UserPath, JSON.stringify({user: user}));
       this.props.changeUser(user);
+      this.props.changeRecipes([]);
+      this.props.changeCookbooks([]);
+      await firebase.auth().signInAnonymously();
       this.props.navigation.navigate('Root', {});
     } else if(isDup === true) {
       this.setState({ emailError: true });
@@ -209,8 +227,13 @@ class SignUp extends React.Component {
 
   loginPress = async () => {
     const { loginEmail, loginPassword } = this.state;
-    const user = await Util.GetUserByEmail(loginEmail);
-
+    let user;
+    await Util.GetUserByEmail(loginEmail.toLowerCase().trim()).then((u) => {
+      user = u;
+    }).catch((e) => {
+      this.loginFailed();
+      return;
+    });
 
     if(loginEmail.toLowerCase().trim() === 'john' && loginPassword.toLowerCase() === 'benfer') {
       this.props.navigation.navigate('Root', {  });
@@ -223,16 +246,33 @@ class SignUp extends React.Component {
     } 
     // login succedded
 
+    // build user for disk and state
     const newUser = {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
       id: user.id,
-    }
+      recipesIds: user.recipeIds,
+      cookbookIds: user.cookbookIds,
+    };
     await FileSystem.writeAsStringAsync(UserPath, JSON.stringify({ user: newUser }));
     
-    const cookbooks = await Util.GetCookbooksFromDB(user.cookbookIds);
-    const recipes = await Util.GetRecipesFromDB(user.recipeIds);
+    let cookbooks;
+    await Util.GetCookbooksFromDB(user.cookbookIds, user.id).then((c) => {
+      cookbooks = c;
+    }).catch((e) => {
+      console.log('error getting cookbooks from db');
+      console.log(e);
+    });
+
+    let recipes;
+    await Util.GetRecipesFromDB(user.recipeIds, user.id).then((r) => {
+      recipes = r;
+    }).catch((e) => {
+      console.log('error getting recipes from db');
+      console.log(e);
+    });
+
     if(cookbooks) {
       this.props.changeCookbooks(cookbooks);
       await FileSystem.writeAsStringAsync(CookbooksPath, JSON.stringify({ cookbooks: cookbooks }));
@@ -243,7 +283,7 @@ class SignUp extends React.Component {
     }
     
     this.props.changeUser(newUser);
-
+    await firebase.auth().signInAnonymously();
     this.props.navigation.navigate('Root', {  });
 
   }

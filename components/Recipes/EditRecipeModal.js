@@ -19,7 +19,11 @@ export default class EditRecipeModal extends React.Component {
     super(props);
     const ingredients = JSON.parse(JSON.stringify(props.recipe.ingredients));
     const directions = JSON.parse(JSON.stringify(props.recipe.directions));
-    const images = JSON.parse(JSON.stringify(props.recipe.images));
+    let images = [];
+    if(props.recipe.images) {
+      images = JSON.parse(JSON.stringify(props.recipe.images));
+    }
+    
     this.state = {
       images: images,
       title: props.recipe.title,
