@@ -86,6 +86,16 @@ class SignUp extends React.Component {
 
     if (cookbooks && recipes && user) {
       await firebase.auth().signInAnonymously();
+
+      console.log(user);
+      console.log(user.user.id);
+      console.log(user.user.recipesIds);
+      await Util.GetRecipesFromDB(["-MVEulfQ7W_G_BzofaNn"], user.user.id).then((r) => {
+        console.log("recipes from db");
+        console.log(r);
+      })
+
+
       this.props.changeUser(user.user);
       const newRecipes = await this.fixDirections(recipes.recipes.reverse());
       this.props.changeRecipes(newRecipes);
