@@ -90,9 +90,11 @@ class SignUp extends React.Component {
       console.log(user);
       console.log(user.user.id);
       console.log(user.user.recipesIds);
-      await Util.GetRecipesFromDB(["-MVEulfQ7W_G_BzofaNn"], user.user.id).then((r) => {
+      await Util.GetRecipesFromDB([], user.user.id).then((r) => {
         console.log("recipes from db");
         console.log(r);
+      }).catch(() => {
+        console.log("error in signup get recipes");
       })
 
 

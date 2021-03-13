@@ -137,7 +137,7 @@ export async function GetRecipesFromDB(recipeIds, userId) {
   const recipeRef = firebase.database().ref("Recipe");
   console.log('recipeIds: ');
   console.log(recipeIds);
-  if (!recipeIds || recipeIds.length === 0) {
+  if (!recipeIds || recipeIds.length === 0) { // use userId to find recipes
     const recipeIdsRef = firebase.database().ref("User/" + userId + "/recipeIds");
     return new Promise(async (resolve, reject) => {
       recipeIdsRef.once('value').then((ids) => {
@@ -152,28 +152,12 @@ export async function GetRecipesFromDB(recipeIds, userId) {
           snapshots.forEach((recipe) => {
             recipeBuilder.push({ id: recipe.key, ...recipe.val() });
           });
-          let recipesToReturn = [];
-          console.log("where am I?");
-          recipeBuilder.forEach(async (recipe) => {
-            console.log(recipe.images?.length);
-            if (recipe.images > 0 || recipe.images?.length > 0) {
-              await getImagesFromDB(recipe.id, recipe.images?.length).then((images) => {
-                recipe.images = images;
-                console.log("made it here");
-                console.log(images);
-                recipesToReturn.push(recipe);
-              });
-            } else {
-              recipe.images = [];
-              recipesToReturn.push(recipe);
-            }
-          });
-          resolve(recipesToReturn);
+          resolve(recipeBuilder);
         });
       });
     });
-  } else {
-    return new Promise(async resolve => {
+  } else { // use provided recipeIds
+    return new Promise(async (resolve, reject) => {
       let promises = recipeIds.map(async (id) => {
         return recipeRef.child(id).once("value").catch(() => console.log("invalid recipe: " + id));
       });
@@ -182,24 +166,10 @@ export async function GetRecipesFromDB(recipeIds, userId) {
         snapshots.forEach((recipe) => {
           recipeBuilder.push({ id: recipe.key, ...recipe.val() });
         });
-
-        let recipesToReturn = [];
-        console.log("where am I?  2");
-        recipeBuilder.forEach(async (recipe) => {
-          console.log(recipe.images?.length);
-          if (recipe.images > 0 || recipe.images?.length > 0) {
-            await getImagesFromDB(recipe.id, recipe.images?.length).then((images) => {
-              recipe.images = images;
-              console.log("made it here  2");
-              console.log(images);
-              recipesToReturn.push(recipe);
-            });
-          } else {
-            recipe.images = [];
-            recipesToReturn.push(recipe);
-          }
-        });
-        resolve(recipesToReturn);
+        resolve(recipeBuilder);
+      }).catch(() => {
+        console.log("in catch here");
+        reject(new Error("error getting recipe"));
       });
     });
   }
@@ -257,16 +227,19 @@ async function getImagesFromDB(recipeId, imageCount) {
   for (let i = 0; i < imageCount; i++) {
     imageRefs.push(storageRef.child(`recipes/${recipeId}/${i}.jpg`));
   }
-  console.log("here in images?");
-  let promises = imageRefs.map((ref) => {
-    console.log('ref in images');
-    ref.getDownloadURL().then(() => {
-      console.log("downloaded..");
-    }).catch(() => {
-      console.log("download failed");
+  return new Promise(async (resolve, reject) => {
+    let promises = imageRefs.map((ref) => {
+      return ref.getDownloadURL();
     });
-  })
-  return Promise.all(promises);
+    let images;
+    await Promise.all(promises).then((i) => {
+      images = i;
+    }).catch(() => {
+      reject(new Error("error getting images"));
+    });
+    resolve(images);
+  });
+
 }
 
 async function deleteImageFromDB(recipeId, imageIndex) {
