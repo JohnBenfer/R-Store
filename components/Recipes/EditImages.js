@@ -13,10 +13,10 @@ export default class EditImages extends React.Component {
       alert('Sorry, we need camera roll permissions to make this work!');
     }
     let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [6, 3],
-      quality: 1,
+      quality: 0.1,
     });
     if (!result.cancelled) {
       let images = this.props.images;
@@ -34,10 +34,10 @@ export default class EditImages extends React.Component {
       alert('Sorry, we need camera roll permissions to make this work!');
     }
     let result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: false,
       aspect: [4, 3],
-      quality: 1,
+      quality: 0.1,
     });
     if (!result.cancelled) {
       let images = this.props.images;

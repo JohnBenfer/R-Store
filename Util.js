@@ -102,6 +102,9 @@ export async function GetUserByEmail(email) {
         console.log(returnUser);
         resolve(returnUser);
       }
+    }).catch((e) => {
+      console.log("login failed:");
+      console.log(e);
     });
   });
 }
@@ -142,7 +145,8 @@ export async function GetRecipesFromDB(recipeIds, userId) {
     return new Promise(async (resolve, reject) => {
       recipeIdsRef.once('value').then((ids) => {
         if (ids.val() === 'null' || !ids.val()) {
-          reject(new Error("Invalid user id"));
+          reject(new Error("Invalid user id or user has no recipes"));
+          return;
         }
         let promises = ids.val().map(async (id) => {
           return recipeRef.child(id).once("value").catch(() => console.log("invalid recipe: " + id));
@@ -183,11 +187,15 @@ export async function GetRecipesFromDB(recipeIds, userId) {
  * @param {array} recipeIds the user's existing recipeIds. The new recipe will be added to this array and update the User in db.
  * @returns the recipeId if created, otherwise null
  */
-export async function AddRecipeToDB(recipe, userId, recipeIds) {
+export async function AddRecipeToDB(newRecipe, userId, recipeIds) {
+  const recipe = JSON.parse(JSON.stringify(newRecipe));
   const recipeRef = firebase.database().ref("Recipe").push();
   const recipeId = recipeRef.toString().replace("https://r-store-v1-default-rtdb.firebaseio.com/Recipe/", "");
-  if (recipe.images && recipe.images.length > 0) {
+  if (recipe.images?.length > 0) {
     addImagesToDB(recipe.images, recipeId, 0);
+    recipe.images = recipe.images.length;
+  } else {
+    recipe.images = 0;
   }
   return new Promise(async resolve => {
     (await recipeRef).set(recipe).then(async () => {
@@ -242,8 +250,32 @@ async function getImagesFromDB(recipeId, imageCount) {
 
 }
 
-async function deleteImageFromDB(recipeId, imageIndex) {
-
+/** Works
+ * 
+ * @param {string} recipeId recipe id to remove images for
+ * @param {number} imageCount the number of images the recipe has
+ * @returns 
+ */
+async function deleteImagesFromDB(recipeId, imageCount) {
+  const storageRef = firebase.storage().ref();
+  if (imageCount < 1 || !imageCount) {
+    return;
+  }
+  let imageRefs = [];
+  for (let i = 0; i < imageCount; i++) {
+    imageRefs.push(storageRef.child(`recipes/${recipeId}/${i}.jpg`));
+  }
+  console.log(imageRefs.length);
+  return new Promise(async (resolve, reject) => {
+    let promises = imageRefs.map((ref) => {
+      return ref.delete();
+    });
+    await Promise.all(promises).then(() => {
+      resolve(true);
+    }).catch(() => {
+      reject(new Error("error deleting images"));
+    });
+  });
 }
 
 /** ------------------ Works ------------------
@@ -254,9 +286,10 @@ async function deleteImageFromDB(recipeId, imageIndex) {
  * @param {array} recipeIds the user's existing recipeIds. The new recipe will be added to this array and update the User in db.
  * @returns the recipeId if created, otherwise null
  */
-export async function RemoveRecipeFromDB(recipeId, userId, recipeIds) {
+export async function RemoveRecipeFromDB(recipeId, userId, recipeIds, imageCount) {
   return new Promise(async (resolve, reject) => {
     await firebase.database().ref("Recipe/" + recipeId).set(null).then(async () => {
+      deleteImagesFromDB(recipeId, imageCount);
       const userRef = firebase.database().ref("User/" + userId);
       recipeIds.splice(recipeIds.indexOf(recipeId), 1);
       await userRef.update({ recipeIds: recipeIds });
@@ -267,14 +300,22 @@ export async function RemoveRecipeFromDB(recipeId, userId, recipeIds) {
   });
 }
 
-/** ------------------ Works ------------------
+/** ------------------ Works ------------------ Needs updated to handle images
  * Updates the recipe in the db
  * 
  * @param {object} recipe the updated recipe object
+ * @param {boolean} imagesChanged true if the images were changed, otherwise false
  */
-export async function EditRecipeInDB(recipe) {
+export async function EditRecipeInDB(recipe, imagesChanged, oldImageCount) {
+  console.log('here?');
+  console.log(recipe.id);
   const recipeRef = firebase.database().ref("Recipe/" + recipe.id);
+  if(imagesChanged) {
+    await deleteImagesFromDB(recipe.id, oldImageCount);
+    addImagesToDB(recipe.images, recipe.id, 0);
+  }
   delete recipe.id;
+  recipe.images = recipe.images.length;
   return new Promise(async (resolve, reject) => {
     recipeRef.set(recipe).then(() => {
       resolve(true);

@@ -117,60 +117,11 @@ class Recipes extends React.Component {
 
   getRecipes = async () => {
     let favoriteRecipes = [];
-    this.props.recipes.recipes.forEach((recipe) => {
+    this.props.recipes.recipes?.forEach((recipe) => {
       recipe.favorite ? favoriteRecipes.push(recipe) : null;
     });
     this.setState({ displayRecipes: this.sortRecipes(this.props.recipes.recipes, favoriteRecipes), favoriteRecipes: favoriteRecipes });
   }
-
-  // getCookbooks = async () => {
-  //   let cookbooks = await Util.ReadCookbooksFromFile();
-  //   console.log(cookbooks);
-  //   if (cookbooks) {
-  //     this.props.changeCookbooks(cookbooks);
-  //   }
-  // }
-
-  // fixDirections = async (recipes) => {
-  //   if (!recipes[0]?.directions[0]?.title) {
-  //     let newRecipes = [];
-  //     recipes.forEach((recipe) => {
-  //       let newDirections = [];
-  //       recipe.directions.forEach((direction) => {
-  //         newDirections.push({ title: direction, groupId: 0 });
-  //       });
-  //       recipe.directions = newDirections;
-  //       newRecipes.push(recipe);
-  //     });
-  //     await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify({ recipes: newRecipes }));
-  //     console.log(newRecipes);
-  //     return newRecipes;
-  //   } else {
-  //     return recipes;
-  //   }
-  // }
-
-  // assignIds = async (recipes) => {
-  //   let newRecipes = this.state.recipes;
-  //   recipes.forEach((r) => {
-  //     if (!r.id) {
-  //       newRecipes[recipes.indexOf(r)].id = this.generateId(recipes);
-  //     }
-  //   });
-  //   console.log(newRecipes);
-  //   await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify({ recipes: newRecipes }));
-  // }
-
-  // generateId = (recipes) => {
-    // Math.random should be unique because of its seeding algorithm.
-    // Convert it to base 36 (numbers + letters), and grab the first 9 characters
-    // after the decimal.
-  //   const id = '_' + Math.random().toString(36).substr(2, 9);
-  //   this.props.recipes.recipes.forEach(r => {
-  //     r.id === id ? this.generateId() : null;
-  //   });
-  //   return id;
-  // }
 
   addRecipe = async (recipe) => {
     let { recipes } = this.props.recipes;
@@ -208,8 +159,11 @@ class Recipes extends React.Component {
   }
 
   sortRecipes = (recipes, favoriteRecipes) => {
+    if(!recipes || recipes.length < 1) {
+      return [];
+    }
     let unPinnedRecipes = [];
-    recipes.forEach((r) => {
+    recipes?.forEach((r) => {
       if (!favoriteRecipes.find((fR) => fR.id === r.id)) {
         unPinnedRecipes.push(r);
       }
@@ -247,6 +201,7 @@ class Recipes extends React.Component {
       console.log('error reading recipes file');
     });
     let oldRecipeIndex = recipes.indexOf(recipes.find((r) => r.id === newRecipe.id));
+    const oldRecipe = recipes[oldRecipeIndex];
     recipes[oldRecipeIndex] = newRecipe;
     // recipes[oldRecipeIndex].title = newRecipe.title;
     // recipes[oldRecipeIndex].description = newRecipe.description;
@@ -268,7 +223,10 @@ class Recipes extends React.Component {
     const newRecipes = {
       recipes: recipes
     };
-    Util.EditRecipeInDB(newRecipe);
+
+    const imagesChanged = oldRecipe.images === newRecipe.images;
+    const oldRecipeImageLength = oldRecipe.images ? oldRecipe.images.length : 0;
+    Util.EditRecipeInDB(newRecipe, imagesChanged, oldRecipeImageLength);
     await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify(newRecipes));
     // close and open recipe card to rerender updates
   }
@@ -289,7 +247,7 @@ class Recipes extends React.Component {
     let newRecipes2 = [];
     let newRecipes3 = [];
     let match = false;
-    this.props.recipes.recipes.forEach((recipe) => {
+    this.props.recipes.recipes?.forEach((recipe) => {
       match = false;
       if (recipe.title.toLowerCase().startsWith(text)) {
         newRecipes.push(recipe);
@@ -317,10 +275,10 @@ class Recipes extends React.Component {
 
   cancelSearchPress = () => {
     if (this.state.searchText && this.state.searchText.length > 0) {
-      setTimeout(() => this.flatListRef.current.scrollToIndex({ index: 0 }), 15);
+      setTimeout(() => this.flatListRef?.current?.scrollToIndex({ index: 0 }), 15);
     }
     this.searchRef.current.blur();
-    const sortedRecipes = this.sortRecipes(this.props.recipes, this.state.favoriteRecipes);
+    const sortedRecipes = this.sortRecipes(this.props.recipes.recipes, this.state.favoriteRecipes);
     this.setState({ showSearch: false, displayRecipes: sortedRecipes, searchText: '' });
   }
 
@@ -362,7 +320,11 @@ class Recipes extends React.Component {
     const newRecipes = {
       recipes: oldRecipes
     };
-    await Util.RemoveRecipeFromDB(recipe.id, this.props.user.user.id, this.getRecipeIds());
+    let imageCount = 0;
+    if(recipe.images?.length) {
+      imageCount = recipe.images.length;
+    }
+    await Util.RemoveRecipeFromDB(recipe.id, this.props.user.user.id, this.getRecipeIds(), imageCount);
     await FileSystem.writeAsStringAsync(RecipesPath, JSON.stringify(newRecipes));
     // remove from displayRecipes state
     displayRecipes.splice(displayRecipes.indexOf(displayRecipes.find((r) => r.id === recipe.id)), 1);
@@ -377,8 +339,7 @@ class Recipes extends React.Component {
 
   getRecipeIds = () => {
     let ids = [];
-    console.log(this.props.recipes.recipes);
-    this.props.recipes.recipes.forEach((recipe) => {
+    this.props.recipes.recipes?.forEach((recipe) => {
       ids.push(recipe.id);
     });
     console.log('ids in getRecipeIds');
@@ -466,7 +427,7 @@ class Recipes extends React.Component {
               />
             </View>
           </View> : null}
-          <AnimatedFlatList
+          {recipes?.length > 0 ? <AnimatedFlatList
             data={displayRecipes}
             renderItem={({ index, item }) => (
               <RecipeCard
@@ -488,7 +449,13 @@ class Recipes extends React.Component {
             snapToInterval={CARD_HEIGHT}
             decelerationRate={0.993}
             ref={this.flatListRef}
-          />
+          /> : 
+          <View style={{height: '100%', justifyContent: 'center', alignItems: 'center'}}>
+            <Text style={{fontSize: 20, color: '#6e6e6e'}}>
+              Create a recipe to get started
+            </Text>
+          </View>
+          }
         </View>
         <View style={styles.button}>
           <Icon
